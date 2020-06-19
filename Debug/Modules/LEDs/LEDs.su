@@ -1,0 +1,6 @@
+fsl_clock.h:668:20:CLOCK_EnableClock	24	static
+fsl_port.h:243:20:PORT_SetPinConfig	32	static
+LEDs.c:51:6:LEDs_Init	8	static
+LEDs.c:79:6:LEDs_On	16	static
+LEDs.c:90:6:LEDs_Off	16	static
+LEDs.c:101:6:LEDs_Toggle	16	static

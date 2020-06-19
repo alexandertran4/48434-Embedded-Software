@@ -1,0 +1,7 @@
+core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
+fsl_clock.h:668:20:CLOCK_EnableClock	24	static
+RTC.c:31:6:RTC_Init	8	static
+RTC.c:63:6:RTC_Set	16	static
+RTC.c:77:6:RTC_Get	32	static
+RTC.c:92:6:RTC_Seconds_IRQHandler	8	static

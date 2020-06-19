@@ -1,0 +1,10 @@
+Flash.c:44:13:LaunchCommand	16	static
+Flash.c:83:13:EraseSector	32	static
+Flash.c:93:6:Flash_Erase	8	static
+Flash.c:101:13:WritePhrase	48	static
+Flash.c:124:13:ModifyPhrase	24	static
+Flash.c:137:6:Flash_Init	4	static
+Flash.c:155:6:Flash_AllocateVar	32	static
+Flash.c:192:6:Flash_Write32	24	static
+Flash.c:225:6:Flash_Write16	24	static
+Flash.c:258:6:Flash_Write8	24	static

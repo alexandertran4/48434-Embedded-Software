@@ -1,0 +1,8 @@
+core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
+fsl_clock.h:668:20:CLOCK_EnableClock	24	static
+accel.c:49:6:Accel_Init	24	static
+accel.c:107:13:Get_AccelMode	4	static
+accel.c:115:6:Accel_ReadXYZ	16	static
+accel.c:131:6:Accel_SetMode	16	static
+accel.c:153:6:PORTC_IRQHandler	8	static

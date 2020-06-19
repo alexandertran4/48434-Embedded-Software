@@ -1,0 +1,10 @@
+core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
+fsl_clock.h:668:20:CLOCK_EnableClock	24	static
+I2C.c:44:6:Wait_For_Ack	16	static
+I2C.c:61:6:I2C_Init	32	static
+I2C.c:130:6:I2C_SelectSlaveDevice	16	static
+I2C.c:140:6:I2C_Write	16	static
+I2C.c:177:6:I2C_PollRead	24	static
+I2C.c:235:6:I2C_IntRead	24	static
+I2C.c:285:6:I2C0_IRQHandler	16	static

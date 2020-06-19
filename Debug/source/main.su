@@ -1,0 +1,14 @@
+main.c:93:6:PacketGetThread	16	static
+main.c:107:6:PITCallbackThread	16	static
+main.c:121:6:HandlePacketVersion	8	static
+main.c:130:6:HandlePacketMCUNumber	16	static
+main.c:155:6:HandlePacketMCUMode	16	static
+main.c:178:6:HandlePacketFlash	8	static
+main.c:194:6:HandlePacketFlashProgram	8	static
+main.c:210:6:HandlePacketSpecial	8	static
+main.c:227:6:SendStartupPackets	4	static
+main.c:238:6:HandleStartupPacket	8	static
+main.c:252:6:HandlePackets	16	static
+main.c:300:13:FreedomInit	8	static
+main.c:334:13:InitModulesThread	24	static
+main.c:360:5:main	16	static
