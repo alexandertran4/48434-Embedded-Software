@@ -157,7 +157,7 @@ void UART_InChar(uint8_t* const dataPtr)
 
 void UART_OutChar(const uint8_t data)
 {
-	return FIFO_Put(&TxFIFO, data);
+	FIFO_Put(&TxFIFO, data);
 }
 
 void UART_Poll(void)

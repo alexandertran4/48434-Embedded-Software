@@ -26,29 +26,27 @@ bool ADC_Init()
 {
 	CLOCK_EnableClock(kCLOCK_Adc0);
 
-	ADC0->SC1 &= ~ADC_SC1_DIFF_MASK; //Set Differential Mode to 0
-	ADC0->SC1[A] |= ADC_SC1_ADCH(23); //Set Channel 23 as ADC Input
+	ADC0->CFG1 = 0; //Clear CFG1 Register
+	ADC0->SC1[A] |= ADC_SC1_ADCH(31);
+	//Set to 16-bit mode, Set to bus clock, Set clock divisor to bus clock /1
+	ADC0->CFG1 |= (ADC_CFG1_MODE(3) | ADC_CFG1_ADICLK(0) | ADC_CFG1_ADIV(0));
+	ADC0->CFG1 |= ADC_CFG1_ADLSMP_MASK; //Configure long sample time
 
-	ADC0->CFG1 = 0;
-	ADC0->CFG1 |= (ADC_CFG1_MODE(3) | ADC_CFG1_ADICLK(0));
+	ADC0->SC2 &= ~ADC_SC2_ADACT_MASK;
+	ADC0->SC2 &= ~ADC_SC2_ADTRG_MASK;
+	ADC0->SC2 &= ~ADC_SC2_ACFE_MASK;
+	ADC0->SC2 &= ~ADC_SC2_DMAEN_MASK;
 
-	NVIC_ClearPendingIRQ(ADC0_IRQn);
-	NVIC_EnableIRQ(ADC0_IRQn);
+	ADC0->SC1[A] |= ADC_SC1_AIEN_MASK;
 
 	return true;
 }
 
-/*! @brief Takes a sample from an analog input channel.
- *
- *  @param channelNb is the number of the analog input channel to sample.
- *  @return bool - true if the channel was read successfully.
- */
-bool ADC_Get(const uint8_t channelNb)
+unsigned short ADC_Read(void)
 {
-
-}
-
-void ADC_IRQHandler(void)
-{
-
+	ADC0->SC1[A] &= ~ADC_SC1_DIFF_MASK; //Set Differential Mode to 0
+	ADC0->SC1[A] |= ADC_SC1_ADCH(23); //Set Channel 23 as ADC Input
+	while(ADC0->SC2 & ADC_SC2_ADACT_MASK);
+	while(!(ADC0->SC1[A] & ADC_SC1_COCO_MASK));
+	return ADC0->R[A];
 }
