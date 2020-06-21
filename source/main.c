@@ -46,6 +46,8 @@
 //Accelerometer
 #include "Packet\packet.h"
 #include "FG.h"
+#include "VRR\VRR.h"
+#include "ADC\ADC.h"
 
 // Simple OS
 #include "OS.h"
@@ -60,7 +62,6 @@ static UARTSetup_t UART_SETUP;
 OS_ECB *UARTTimerSemaphore[8];
 OS_ECB *PITSemaphore;
 const uint32_t BAUD_RATE = 115200;
-const int16_t LOW_VOLTAGE_LIMIT = 2;
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
 OS_THREAD_STACK(PacketGetModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the PACKET GET thread. */
@@ -88,10 +89,6 @@ enum Priority {
 	FG_PACKET_PRIORITY = 2,
 };
 
-enum Timing {
-	DEFINITE_TIMING = 5,
-	INVESRE_TIMING
-};
 const FGSetup_t FG_SETUP =
 {
 	/*!< A pointer to the global Packet structure. */
@@ -106,6 +103,22 @@ const UARTSetup_t UART_SETUP =
 {
 	/*!< A pointer to the global Packet structure. */
 	.baudRate = BAUD_RATE
+};
+
+static AnalogThreadData_t AnalogThreadData[NB_ANALOG_CHANNELS] =
+{
+    {
+        .semaphore = NULL,
+        .channelNb = 0,
+        .analogSamples[0] = 0,
+        .TRMS = 0,
+        .setTRMSValue = 0,
+        .VTRMS = 0,
+        .tmrMode = DEFINITE,
+        .inBounds = true,
+        .timeSet = 0,
+        .newCountDown = 0
+    }
 };
 
 // Private global variables
@@ -267,6 +280,59 @@ void HandleStartupPacket(void)
 	SendStartupPackets();
 }
 
+bool HandleTimingMode(void)
+{
+	bool success;
+
+	if (Packet_Parameter1 == 0)
+	{
+		Packet_Put(CMD_TIMING_MODE, Timing_Mode, 0, 0);
+	}
+	else if (Packet_Parameter1 == 1)
+	{
+		Timing_Mode = Packet_Parameter1;
+		success = true;
+	}
+
+	return success;
+}
+
+bool Raises(void)
+{
+	bool success;
+	if (Packet_Parameter1 == 0)
+	{
+		success = Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raise, 0, 0);
+	}
+	else if (Packet_Parameter1 == 1)
+	{
+		Nb_Raise = 0;
+		success = true;
+	}
+
+	return success;
+}
+
+bool Lowers(void)
+{
+  bool success;
+  if (Packet_Parameter1 == 0) // Get number of raises
+  {
+     success = Packet_Put(CMD_NUMBER_OF_LOWERS, Nb_Lowers, 0, 0);
+  }
+  else if (Packet_Parameter1 == 1)
+  {
+     NumberOfLowers = 0;
+     success = true;
+  }
+  return success;
+}
+
+bool HandleAnalogPackets(void)
+{
+
+}
+
 /*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
 *
 *  @return bool - TRUE if sending the protocol packets was successful.
@@ -306,6 +372,10 @@ void HandlePackets()
 
 		case CMD_MCU_FLASH: 					//send packet 0x07
 		success = HandlePacketFlashProgram();
+		break;
+
+		case CMD_TIMING_MODE:
+		success = HandleTimingMode();
 		break;
 
 		default:
@@ -377,28 +447,13 @@ static void InitModulesThread(void *pData)
 	 }
 
 	 success = Flash_AllocateVar((volatile void **)&NvModeNb, sizeof(*NvModeNb));
+
 	 if (success && (NvModeNb->l == 0xffff))
 	 {
 	     Flash_Write16((volatile uint16_t*)NvModeNb, MCU_MODE);
 	 }
 
 	 OS_ThreadDelete(OS_PRIORITY_SELF);
-}
-
-static void VRRThread(void *pData)
-{
-	for ( ;;)
-	{
-		OS_SemaphoreWait();
-
-		if ( xx < 2 )
-		{
-			LEDs_On(LED_RED);
-
-		}
-
-
-	}
 }
 
 static void FrequncyTrackingThread(void *pData)

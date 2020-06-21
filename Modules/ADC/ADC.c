@@ -1,6 +1,6 @@
 /*!
 ** @file ADC.c
-** @brief Routines for setting up the FlexTimer module (FTM).
+** @brief Routines for setting up the Analog to Digital Converter module (ADC).
 ** @author by Alexander Tran 12610655
 ** @date 2020-06-20
 */
@@ -55,7 +55,7 @@ bool ADC_Get(const uint8_t channelNb, int16_t* const valuePtr)
 	return ADC0->R[A];
 }
 
-bool Analog_Put(uint8_t const channelNb, int16_t const value)
+bool ADC_Put(uint8_t const channelNb, int16_t const value)
 {
 
 }

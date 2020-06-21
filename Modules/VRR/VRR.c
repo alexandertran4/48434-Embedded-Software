@@ -7,15 +7,13 @@
  *  @author Alexander Tran 12610655
  *  @date 2020-06-21
  */
+/*!
+**  @addtogroup VRR_module VRR module documentation
+**  @{
+*/
 #include "types\types.h"
 #include "VRR\VRR.h"
 #include "FG.h"
-
-enum Timer_Mode
-{
-	DEFINITE,
-	INVERSE
-};
 
 void Alarm_Tap()
 {

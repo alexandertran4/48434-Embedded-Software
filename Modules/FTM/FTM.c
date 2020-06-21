@@ -23,15 +23,6 @@ static OS_ECB *FTMSemaphore;
 OS_ERROR error;
 OS_THREAD_STACK(FTMCallbackThreadStack, THREAD_STACK_SIZE);
 
-void FTMCallbackThread(void *arg)
-{
-	for (;;)
-	{
-		OS_SemaphoreWait(FTMSemaphore[0], 0);
-		LEDs_Off(LED_BLUE);
-	}
-}
-
 /*! @brief Sets up the FTM before first use.
  *
  *  Enables the FTM as a free running 16-bit counter.
@@ -119,6 +110,16 @@ bool FTM_Set(const TFTMChannel* const aFTMChannel)
 		}
     break;
 	}
+}
+
+void FTMCallbackThread(void *pData)
+{
+  for (;;)
+  {
+    //Wait on the FTM0 Semaphore
+    OS_SemaphoreWait(FTM0Semaphore, 0);
+    LEDs_Off(LED_BLUE);
+  }
 }
 
 /*! @brief Starts a timer if set up for output compare.

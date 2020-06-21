@@ -15,6 +15,12 @@
 
 const int16_t SAMPLES_PER_PERIOD = 16;
 
+enum Timer_Mode
+{
+	DEFINITE,
+	INVERSE
+};
+
 typedef struct AnalogThreadData
 {
   OS_ECB* Semaphore;
@@ -28,6 +34,5 @@ typedef struct AnalogThreadData
   uint64_t timeSet;
   uint64_t newCountDown;
 } AnalogThreadData_t;
-
 
 #endif /* VRR_H_ */

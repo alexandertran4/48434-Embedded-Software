@@ -74,7 +74,7 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
 	NVIC_EnableIRQ(PIT0_IRQn);
 
 	NVIC_ClearPendingIRQ(PIT1_IRQn);
-	NVIC_EnableIRQ(PIT0_IRQn);
+	NVIC_EnableIRQ(PIT1_IRQn);
 
 	error = OS_ThreadCreate(PIT0CallbackThread, NULL, &PIT0CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
 
