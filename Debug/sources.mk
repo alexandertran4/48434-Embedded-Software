@@ -14,6 +14,7 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+Modules/ADC \
 Modules/Critical \
 Modules/FIFO \
 Modules/FTM \
@@ -23,6 +24,7 @@ Modules/Median \
 Modules/PIT \
 Modules/Packet \
 Modules/UART \
+VRR \
 board \
 device \
 drivers \

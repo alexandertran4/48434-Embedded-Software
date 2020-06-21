@@ -112,12 +112,12 @@ const UARTSetup_t UART_SETUP =
 // TODO: Define the MCU number.
 const uint8_t MCU_MODE = 0x01;
 const uint8_t PACKET_ACK_MASK = 0x80;
-const uint16_t STUDENT_NUMBER = 0x8681;
+const uint16_t STUDENT_NUMBER = 0x655;
 // Version number
 // TODO: Define the major version number and minor version number using const.
 //Last 4 digits of student number converted to binary form
-static uint8_t MCU_NUM_L = 0b11101001;
-static uint8_t MCU_NUM_H = 0b00100001;
+static uint8_t MCU_NUM_L = 0b10001111;
+static uint8_t MCU_NUM_H = 0b00000010;
 //Latest bytes of accelerometer data, X, Y and Z
 
 /*!

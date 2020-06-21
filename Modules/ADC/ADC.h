@@ -2,7 +2,7 @@
  * ADC.h
  *
  *  Created on: 19 Jun 2020
- *      Author: User
+ *      Author: Alexander Tran
  */
 
 #ifndef ADC_ADC_H_
@@ -20,7 +20,7 @@ bool ADC_Init();
  *  @param channelNb is the number of the analog input channel to sample.
  *  @return bool - true if the channel was read successfully.
  */
-bool ADC_Get(const uint8_t channelNb);
+unsigned short ADC_Read(void);
 
 
 #endif /* ADC_ADC_H_ */
