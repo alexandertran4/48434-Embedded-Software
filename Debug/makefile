@@ -13,7 +13,7 @@ RM := rm -rf
 -include drivers/subdir.mk
 -include device/subdir.mk
 -include board/subdir.mk
--include VRR/subdir.mk
+-include Modules/VRR/subdir.mk
 -include Modules/UART/subdir.mk
 -include Modules/Packet/subdir.mk
 -include Modules/PIT/subdir.mk

@@ -24,7 +24,7 @@ Modules/Median \
 Modules/PIT \
 Modules/Packet \
 Modules/UART \
-VRR \
+Modules/VRR \
 board \
 device \
 drivers \

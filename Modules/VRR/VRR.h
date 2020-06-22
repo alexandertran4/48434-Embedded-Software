@@ -15,24 +15,9 @@
 
 const int16_t SAMPLES_PER_PERIOD = 16;
 
-enum Timer_Mode
-{
-	DEFINITE,
-	INVERSE
-};
-
-typedef struct AnalogThreadData
-{
-  OS_ECB* Semaphore;
-  uint8_t channelNb;
-  int16_t AnalogSamples[SAMPLES_PER_PERIOD]; // Channel samples
-  uint16_t TRMS;  // Raw True RMS Calculation
-  uint16_t setTRMSValue;  // TRMS value from set for inverse timing
-  int16union_t VTRMS;    // Volt converted True RMS
-  enum TIMER_MODE tmrMode;  // What timer mode
-  bool inBounds;
-  uint64_t timeSet;
-  uint64_t newCountDown;
-} AnalogThreadData_t;
+void Alarm_Tap();
+void Raise_Tap();
+void Lower_Tap();
+void Idle_Signal();
 
 #endif /* VRR_H_ */

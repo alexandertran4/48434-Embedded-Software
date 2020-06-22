@@ -59,7 +59,6 @@
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
 static UARTSetup_t UART_SETUP;
-OS_ECB *UARTTimerSemaphore[8];
 OS_ECB *PITSemaphore;
 const uint32_t BAUD_RATE = 115200;
 // Thread stacks
@@ -292,7 +291,7 @@ bool HandleTimingMode(void)
 	}
 }
 
-bool Raises(void)
+bool Raise(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
@@ -304,7 +303,7 @@ bool Raises(void)
 	}
 }
 
-bool Lowers(void)
+bool Lower(void)
 {
   if (Packet_Parameter1 == 0) // Get number of raises
   {
@@ -314,6 +313,11 @@ bool Lowers(void)
   {
      Nb_Lowers = 0;
   }
+}
+
+bool RMSValues(void)
+{
+
 }
 
 bool HandleAnalogPackets(void)
@@ -408,8 +412,6 @@ static bool MCUInit(void)
   UART_TIMER.delayNanoseconds = 24414;
   UART_TIMER.timerFunction = TIMER_FUNCTION_OUTPUT_COMPARE;
   UART_TIMER.ioType.outputAction = TIMER_OUTPUT_LOW;
-  /*UART_TIMER.callbackFunction = &UARTTimerCallback;*/
-  UART_TIMER.callbackArguments = NULL;
 
   FTM_Set(&UART_TIMER);
 

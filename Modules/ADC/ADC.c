@@ -46,7 +46,7 @@ bool ADC_Init(const uint32_t moduleClock)
 	return true;
 }
 
-bool ADC_Put(int16_t* const value)
+bool ADC_Get(int16_t* const value)
 {
 	uint16_t valueData;
 	ADC0->SC1[A] |= ADC_SC1_DIFF(0); //Set Differential Mode to 0 for Unipolar/Single ended conversion
@@ -56,8 +56,13 @@ bool ADC_Put(int16_t* const value)
 
 	value[0] = ADC0->R[A]; //Dummy read
 
-	for (valueData = 0; valueData < 16; valueData++)
+	for (valueData = 0; valueData < 16; valueData++) //Store up to 16 sample values in the ADC Register
 	{
 		value[valueData] = ADC0->R[A]; //Store values of the samples to ADC register
 	}
+}
+
+bool ADC_Put(int16_t const value)
+{
+
 }

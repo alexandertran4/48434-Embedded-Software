@@ -14,8 +14,24 @@
 #include "types\types.h"
 #include "VRR\VRR.h"
 #include "FG.h"
+#include "LEDs\LEDs.h"
 
 void Alarm_Tap()
 {
+	LEDs_On(LED_RED);
+}
 
+void Raise_Tap()
+{
+	LEDs_On(LED_GREEN);
+}
+
+void Lower_Tap()
+{
+	LEDs_On(LED_BLUE);
+}
+
+void Idle_Signal()
+{
+	LEDs_Off(LED_GREEN | LED_BLUE | LED_RED);
 }
