@@ -282,8 +282,6 @@ void HandleStartupPacket(void)
 
 bool HandleTimingMode(void)
 {
-	bool success;
-
 	if (Packet_Parameter1 == 0)
 	{
 		Packet_Put(CMD_TIMING_MODE, Timing_Mode, 0, 0);
@@ -291,41 +289,31 @@ bool HandleTimingMode(void)
 	else if (Packet_Parameter1 == 1)
 	{
 		Timing_Mode = Packet_Parameter1;
-		success = true;
 	}
-
-	return success;
 }
 
 bool Raises(void)
 {
-	bool success;
 	if (Packet_Parameter1 == 0)
 	{
-		success = Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raise, 0, 0);
+		Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raise, 0, 0);
 	}
 	else if (Packet_Parameter1 == 1)
 	{
 		Nb_Raise = 0;
-		success = true;
 	}
-
-	return success;
 }
 
 bool Lowers(void)
 {
-  bool success;
   if (Packet_Parameter1 == 0) // Get number of raises
   {
-     success = Packet_Put(CMD_NUMBER_OF_LOWERS, Nb_Lowers, 0, 0);
+     Packet_Put(CMD_NUMBER_OF_LOWERS, Nb_Lowers, 0, 0);
   }
   else if (Packet_Parameter1 == 1)
   {
-     NumberOfLowers = 0;
-     success = true;
+     Nb_Lowers = 0;
   }
-  return success;
 }
 
 bool HandleAnalogPackets(void)

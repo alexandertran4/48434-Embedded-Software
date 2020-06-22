@@ -138,11 +138,11 @@ void PIT_Enable(uint8_t channelNb, const bool enable)
 	    case 1:
 	 	if (enable == true)
 	 	{
-	 		PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 1
+	 		PIT->CHANNEL[1].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 1
 	 	}
 	 	else
 	 	{
-	 		PIT->CHANNEL[0].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 1
+	 		PIT->CHANNEL[1].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 1
 	 	}
 	 	break;
 	}
@@ -161,7 +161,7 @@ void PIT0_IRQHandler(void)
 	//clear flag
 	PIT->CHANNEL[0].TFLG |= PIT_TFLG_TIF_MASK;
 
-	OS_SemaphoreSignal(PITSemaphore);
+	OS_SemaphoreSignal(PIT0Semaphore);
 
 	OS_ISRExit();
 }
@@ -173,7 +173,7 @@ void PIT1_IRQHandler(void)
 	//clear flag
 	PIT->CHANNEL[1].TFLG |= PIT_TFLG_TIF_MASK;
 
-	OS_SemaphoreSignal(PITSemaphore);
+	OS_SemaphoreSignal(PIT1Semaphore);
 
 	OS_ISRExit();
 }

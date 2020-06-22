@@ -36,7 +36,7 @@ bool ADC_Init(const uint32_t moduleClock)
 	ADC0->CFG1 |= (ADC_CFG1_MODE(3) | ADC_CFG1_ADICLK(0) | ADC_CFG1_ADIV(0));
 	ADC0->CFG1 |= ADC_CFG1_ADLSMP_MASK; //Configure long sample time
 
-	ADC0->SC2 &= ~ADC_SC2_ADACT_MASK;
+	ADC0->SC2 &= ~ADC_SC2_ADACT_MASK; //Disable conversion
 	ADC0->SC2 &= ~ADC_SC2_ADTRG_MASK;
 	ADC0->SC2 &= ~ADC_SC2_ACFE_MASK;
 	ADC0->SC2 &= ~ADC_SC2_DMAEN_MASK;
@@ -46,16 +46,18 @@ bool ADC_Init(const uint32_t moduleClock)
 	return true;
 }
 
-bool ADC_Get(const uint8_t channelNb, int16_t* const valuePtr)
+bool ADC_Put(int16_t* const value)
 {
-	ADC0->SC1[A] &= ~ADC_SC1_DIFF_MASK; //Set Differential Mode to 0
+	uint16_t valueData;
+	ADC0->SC1[A] |= ADC_SC1_DIFF(0); //Set Differential Mode to 0 for Unipolar/Single ended conversion
 	ADC0->SC1[A] |= ADC_SC1_ADCH(23); //Set Channel 23 as ADC Input
-	while(ADC0->SC2 & ADC_SC2_ADACT_MASK);
-	while(!(ADC0->SC1[A] & ADC_SC1_COCO_MASK));
-	return ADC0->R[A];
-}
+	while(ADC0->SC2 & ADC_SC2_ADACT_MASK); //Conversion taking place
+	while(!(ADC0->SC1[A] & ADC_SC1_COCO_MASK)); //Wait until conversion is complete
 
-bool ADC_Put(uint8_t const channelNb, int16_t const value)
-{
+	value[0] = ADC0->R[A]; //Dummy read
 
+	for (valueData = 0; valueData < 16; valueData++)
+	{
+		value[valueData] = ADC0->R[A]; //Store values of the samples to ADC register
+	}
 }
