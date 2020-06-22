@@ -291,7 +291,7 @@ bool HandleTimingMode(void)
 	}
 }
 
-bool Raise(void)
+bool HandleRaiseMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
@@ -303,7 +303,7 @@ bool Raise(void)
 	}
 }
 
-bool Lower(void)
+bool HandleLowerMode(void)
 {
   if (Packet_Parameter1 == 0) // Get number of raises
   {
@@ -315,13 +315,16 @@ bool Lower(void)
   }
 }
 
-bool RMSValues(void)
+bool HandleRMSValues(void)
 {
+    Packet_Parameter1 = 1;
 
-}
-
-bool HandleAnalogPackets(void)
-{
+	uint16_t tempVRMS = (uint16_t) ((samples[0].vrmsValue / 3276.7) * 100);
+	uint16_t lowVRMS = tempVRMS%256;
+	uint16_t highVRMS = tempVRMS/256;
+	uint8_t highVRMS8 = (uint8_t) highVRMS;
+	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
+	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
 
 }
 
@@ -368,6 +371,14 @@ void HandlePackets()
 
 		case CMD_TIMING_MODE:
 		success = HandleTimingMode();
+		break;
+
+		case CMD_NUMBER_OF_RAISES:
+		success = HandleRaiseMode();
+		break;
+
+		case CMD_TIMING_MODE:
+		success = HandleLowerMode();
 		break;
 
 		default:
@@ -446,10 +457,6 @@ static void InitModulesThread(void *pData)
 	 OS_ThreadDelete(OS_PRIORITY_SELF);
 }
 
-static void FrequncyTrackingThread(void *pData)
-{
-
-}
 /*! @brief Initialises the hardware, sets up threads, and starts the OS.
  *
  */
