@@ -13,14 +13,13 @@
  *  @param moduleClock The module clock rate in Hz.
  *  @return bool - true if the UART was successfully initialized.
  */
-bool ADC_Init();
+bool ADC_Init(uint32_t moduleClock);
 
-/*! @brief Takes a sample from an analog input channel.
+/*! @brief Takes a sample from ADC Channel 23.
  *
- *  @param channelNb is the number of the analog input channel to sample.
  *  @return bool - true if the channel was read successfully.
  */
-unsigned short ADC_Read(void);
+int16_t ADC_Read();
 
 
 #endif /* ADC_ADC_H_ */

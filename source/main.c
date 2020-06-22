@@ -58,7 +58,6 @@
 #define THREAD_STACK_SIZE 100
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
-static UARTSetup_t UART_SETUP;
 OS_ECB *PITSemaphore;
 const uint32_t BAUD_RATE = 115200;
 // Thread stacks
@@ -102,22 +101,6 @@ const UARTSetup_t UART_SETUP =
 {
 	/*!< A pointer to the global Packet structure. */
 	.baudRate = BAUD_RATE
-};
-
-static AnalogThreadData_t AnalogThreadData[NB_ANALOG_CHANNELS] =
-{
-    {
-        .semaphore = NULL,
-        .channelNb = 0,
-        .analogSamples[0] = 0,
-        .TRMS = 0,
-        .setTRMSValue = 0,
-        .VTRMS = 0,
-        .tmrMode = DEFINITE,
-        .inBounds = true,
-        .timeSet = 0,
-        .newCountDown = 0
-    }
 };
 
 // Private global variables
@@ -245,15 +228,14 @@ bool HandlePacketFlashProgram()
 bool HandlePacketSpecial()
 {
 	if (Packet_Parameter1 == 'v' && Packet_Parameter2 == 'x' && Packet_Parameter3 == '\r')
-		{
-			Packet_Put(CMD_MCU_SPECIAL, 'v', 0x01, 0);
-		}
-		else
-		{
-			return false;
-		}
+	{
+		Packet_Put(CMD_MCU_SPECIAL, 'v', 0x01, 0);
+	}
+	else
+	{
+		return false;
+	}
 }
-
 
 /*! @brief Sends the Initial 4 commands to the PC upon startup on the MCU, or upon the calling of that command
  *
@@ -325,7 +307,6 @@ bool HandleRMSValues(void)
 	uint8_t highVRMS8 = (uint8_t) highVRMS;
 	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
 	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
-
 }
 
 /*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
@@ -377,7 +358,7 @@ void HandlePackets()
 		success = HandleRaiseMode();
 		break;
 
-		case CMD_TIMING_MODE:
+		case CMD_NUMBER_OF_LOWERS:
 		success = HandleLowerMode();
 		break;
 
@@ -410,7 +391,7 @@ static bool MCUInit(void)
 
   static const uint32_t TimerPeriod = 500000000;
 
-  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), PITCallbackThread, NULL) && FTM_Init() && FG_Init(CLOCK_GetFreq(kCLOCK_BusClk), &FG_SETUP)) //Initialisation of packet
+  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), PITCallbackThread, NULL) && FTM_Init() && FG_Init(SystemCoreClock, &FG_SETUP)) //Initialisation of packet
   {
 	 LEDs_On(LED_GREEN); //Call LED function to turn on Green LED
 	 PIT_Set(TimerPeriod, true); //Set PIT Timer period

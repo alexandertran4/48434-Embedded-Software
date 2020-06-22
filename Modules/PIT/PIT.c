@@ -21,9 +21,10 @@
 #include "LEDs\LEDs.h"
 #define THREAD_STACK_SIZE 100
 extern OS_ECB *PIT0Semaphore;
-extern OS_ECB *PIT1Semaphore;
+extern OS_ECB *PIT2Semaphore;
 OS_ERROR error;
-OS_THREAD_STACK(PITCallbackThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT0CallbackThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT2CallbackThreadStack, THREAD_STACK_SIZE);
 static void (*Userfunction)(void*); /*!< User function to be called by the PIT ISR. */
 static void* Userarguments; /*!< Arguments to pass to the PIT user function. */
 
@@ -36,11 +37,11 @@ void PIT0CallbackThread(void *arg)
 	}
 }
 
-void PIT1CallbackThread(void *arg)
+void PIT2CallbackThread(void *arg)
 {
 	for (;;)
 	{
-		OS_SemaphoreWait(PIT1Semaphore, 0);
+		OS_SemaphoreWait(PIT2Semaphore, 0);
 		LEDs_Toggle(LED_GREEN);
 	}
 }
@@ -57,7 +58,7 @@ void PIT1CallbackThread(void *arg)
 bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userArguments)
 {
 	PIT0Semaphore = OS_SemaphoreCreate(0);
-	PIT1Semaphore = OS_SemaphoreCreate(0);
+	PIT2Semaphore = OS_SemaphoreCreate(0);
 
 	Userfunction = userFunction;
 	Userarguments = userArguments;
@@ -68,15 +69,16 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
 	PIT->MCR |= PIT_MCR_FRZ_MASK;
 
 	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;//enables interrupts for PIT-channel 0
-	PIT->CHANNEL[1].TCTRL |= PIT_TCTRL_TIE_MASK;
+	PIT->CHANNEL[2].TCTRL |= PIT_TCTRL_TIE_MASK;
 
 	NVIC_ClearPendingIRQ(PIT0_IRQn);
 	NVIC_EnableIRQ(PIT0_IRQn);
 
-	NVIC_ClearPendingIRQ(PIT1_IRQn);
-	NVIC_EnableIRQ(PIT1_IRQn);
+	NVIC_ClearPendingIRQ(PIT2_IRQn);
+	NVIC_EnableIRQ(PIT2_IRQn);
 
 	error = OS_ThreadCreate(PIT0CallbackThread, NULL, &PIT0CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
+	error = OS_ThreadCreate(PIT2CallbackThread, NULL, &PIT2CallbackThreadStack[THREAD_STACK_SIZE-1], 4);
 
 	return true;
 }
@@ -98,53 +100,60 @@ void PIT_Set(const uint32_t period, const bool restart)
 
 	//TSV - Timer Start Value.
 
-	if (restart)
-	{
-		PIT_Enable(channelNb, false);
-		switch(channelNb)
+	PIT->CHANNEL[0].LDVAL = PIT_LDVAL_TSV(triggerVal);
+
+		if (restart)
 		{
-			case 0:
-			PIT->CHANNEL[0].LDVAL = PIT_LDVAL_TSV(triggerVal);
-			break;
-
-			case 1:
-			PIT->CHANNEL[1].LDVAL = PIT_LDVAL_TSV(triggerVal);
-			break;
+			PIT_Enable(false);
+			PIT_Enable(true);
 		}
-
-	PIT_Enable(channelNb, true);
-	}
 }
+void PIT_Set2(const uint32_t period, const bool restart)
+{
+	//K64 module refers to these variables
+	static uint32_t PITmoduleClk;
+	uint32_t freqHz = 1e9 / period;
+	uint32_t cycleCount = PITmoduleClk / freqHz;
+	uint32_t triggerVal = cycleCount - 1;
+
+	//TSV - Timer Start Value.
+
+	PIT->CHANNEL[2].LDVAL = PIT_LDVAL_TSV(triggerVal);
+
+		if (restart)
+		{
+			PIT_Enable(false);
+			PIT_Enable(true);
+		}
+}
+
 
 /*! @brief Enables or disables the PIT.
  *
  *  @param enable - TRUE if the PIT is to be enabled, FALSE if the PIT is to be disabled.
  */
-void PIT_Enable(uint8_t channelNb, const bool enable)
+void PIT_Enable(const bool enable)
 {
-	switch(channelNb)
+	if (enable == true)
 	{
-	    case 0:
-		if (enable == true)
-		{
-			PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 0
-		}
-		else
-		{
-			PIT->CHANNEL[0].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 0
-		}
-		break;
+		PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 0
+	}
+	else
+	{
+		PIT->CHANNEL[0].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 0
 
-	    case 1:
-	 	if (enable == true)
-	 	{
-	 		PIT->CHANNEL[1].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 1
-	 	}
-	 	else
-	 	{
-	 		PIT->CHANNEL[1].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 1
-	 	}
-	 	break;
+	}
+}
+
+void PIT_Enable2(const bool enable)
+{
+	if (enable == true)
+	{
+		PIT->CHANNEL[2].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 2
+	}
+	else
+	{
+		PIT->CHANNEL[2].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 2
 	}
 }
 
@@ -166,14 +175,14 @@ void PIT0_IRQHandler(void)
 	OS_ISRExit();
 }
 
-void PIT1_IRQHandler(void)
+void PIT2_IRQHandler(void)
 {
 	OS_ISREnter();
 
 	//clear flag
-	PIT->CHANNEL[1].TFLG |= PIT_TFLG_TIF_MASK;
+	PIT->CHANNEL[2].TFLG |= PIT_TFLG_TIF_MASK;
 
-	OS_SemaphoreSignal(PIT1Semaphore);
+	OS_SemaphoreSignal(PIT2Semaphore);
 
 	OS_ISRExit();
 }
