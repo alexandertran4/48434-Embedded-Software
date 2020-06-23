@@ -39,7 +39,6 @@ bool ADC_Init(const uint32_t moduleClock)
 
 int16_t ADC_Read()
 {
-	uint16_t valueData;
 	/*ADC0->SC1[0] |= ADC_SC1_DIFF(0); *///Set Differential Mode to 0 for Unipolar/Single ended conversion
 	ADC0->SC1[0] |= ADC_SC1_ADCH(23); //Set Channel 23 as ADC Input
 	/*while(ADC0->SC1[0] & ADC_SC1_ADACT_MASK); //Conversion taking place*/

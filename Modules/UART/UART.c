@@ -25,11 +25,6 @@
 #include "fsl_clock.h"
 #include "OS.h"
 
-enum {
-	RX_PRIORITY = 1,
-	TX_PRIORITY = 2
-};
-
 const port_pin_config_t UART_PORT_PIN_CONFIG =
 {
 	.pullSelect = kPORT_PullDisable,
@@ -41,23 +36,12 @@ const port_pin_config_t UART_PORT_PIN_CONFIG =
 	.lockRegister = kPORT_UnlockRegister
 };
 
-const UARTSetup_t UARTSETUP =
-{
-	.rxPriority = RX_PRIORITY,
-	.txPriority = TX_PRIORITY
-};
-
-#define THREAD_STACK_SIZE 100
-OS_ERROR error;
-OS_THREAD_STACK(ReceiveThreadStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(TransmitThreadStack, THREAD_STACK_SIZE);
 static TFIFO RxFIFO;
 static TFIFO TxFIFO;
 OS_ECB *RxSemaphore;
 OS_ECB *TxSemaphore;
 
-
-static void ReceiveThread(void *pData)
+void ReceiveThread(void *pData)
 {
   for(;;)
   {
@@ -99,7 +83,7 @@ bool UART_Init(const uint32_t moduleClk, const UARTSetup_t* const uartSetup)
 	FIFO_Init(&RxFIFO); //Initiate in FIFO
 
 	RxSemaphore = OS_SemaphoreCreate(0);
-	TxSemaphore = OS_SemaphoreCreate(0);
+	TxSemaphore = OS_SemaphoreCreate(1);
 
 	CLOCK_EnableClock(kCLOCK_Uart0);
 	CLOCK_EnableClock(kCLOCK_PortB);
@@ -109,9 +93,9 @@ bool UART_Init(const uint32_t moduleClk, const UARTSetup_t* const uartSetup)
 
 	static uint16_t setBaudRate;
 	static uint16_t BaudRateFineAdjust;
-	setBaudRate = moduleClk / (16 * uartSetup->baudRate);
+	setBaudRate = moduleClk / (16 *uartSetup->baudRate);
 
-	BaudRateFineAdjust = ((moduleClk * 32) / (16 * uartSetup->baudRate));
+	BaudRateFineAdjust = ((moduleClk * 32) / (16 *uartSetup->baudRate));
 
 	if (setBaudRate > 8191)	//setBaudRate maxes out at 8191 as stated in datasheet
 	{
@@ -134,9 +118,6 @@ bool UART_Init(const uint32_t moduleClk, const UARTSetup_t* const uartSetup)
 	NVIC_ClearPendingIRQ(UART0_RX_TX_IRQn);
 	NVIC_EnableIRQ(UART0_RX_TX_IRQn);
 
-	error = OS_ThreadCreate(ReceiveThread, NULL, &ReceiveThreadStack[THREAD_STACK_SIZE-1], RX_PRIORITY);
-	error = OS_ThreadCreate(TransmitThread, NULL, &TransmitThreadStack[THREAD_STACK_SIZE-1], TX_PRIORITY);
-
 	return true;
 }
 /*! @brief If FIFO is not empty, return a character from it.
@@ -146,7 +127,7 @@ bool UART_Init(const uint32_t moduleClk, const UARTSetup_t* const uartSetup)
  */
 void UART_InChar(uint8_t* const dataPtr)
 {
-	return FIFO_Get(&RxFIFO, dataPtr);				//Place data provided in TxFIFO
+	FIFO_Get(&RxFIFO, dataPtr);				//Place data provided in TxFIFO
 }
 
 /*! @brief if FIFO is not empty, insert data into it.

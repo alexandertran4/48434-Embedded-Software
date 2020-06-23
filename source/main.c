@@ -1,6 +1,6 @@
 /*!
 ** @file
-** @version 5.0
+** @version 6.0
 ** @brief  Main module.
 **
 **   This file contains the high-level code for the project.
@@ -51,20 +51,27 @@
 
 // Simple OS
 #include "OS.h"
-
+#include "FG.h"
 #define DEBUG_HALT __asm( "BKPT 255")
 
 // Arbitrary thread stack size - big enough for stacking of interrupts and OS use.
 #define THREAD_STACK_SIZE 100
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
-OS_ECB *PITSemaphore;
+OS_ECB* FG_HandlePacketSemaphore; /*!< Semaphore used to initiate FG packet handling. */
+OS_ECB* FG_PacketProcessed;          /*!< Semaphore used to signal the end of FG packet handling. */
+bool FG_PacketHandledSuccessfully;
 const uint32_t BAUD_RATE = 115200;
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
 OS_THREAD_STACK(PacketGetModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the PACKET GET thread. */
 /*!< The stack for the FTM thread. */
 /*!< The stack for the PIT thread. */
+OS_THREAD_STACK(ReceiveThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(TransmitThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(FTMCallbackThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT0CallbackThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT2CallbackThreadStack, THREAD_STACK_SIZE);
 // Commands
 // TODO: Define the commands using enum.
 enum Command {
@@ -83,8 +90,10 @@ enum Command {
 };
 
 enum Priority {
-	FG_OUT_PRIORITY = 1,
-	FG_PACKET_PRIORITY = 2,
+	FG_OUT_PRIORITY = 5,
+	FG_PACKET_PRIORITY = 6,
+	RX_PRIORITY = 1,
+	TX_PRIORITY = 2
 };
 
 const FGSetup_t FG_SETUP =
@@ -100,7 +109,9 @@ const FGSetup_t FG_SETUP =
 const UARTSetup_t UART_SETUP =
 {
 	/*!< A pointer to the global Packet structure. */
-	.baudRate = BAUD_RATE
+	.baudRate = BAUD_RATE,
+	.rxPriority = RX_PRIORITY,
+	.txPriority = TX_PRIORITY
 };
 
 // Private global variables
@@ -127,18 +138,31 @@ void PacketGetThread(void *pData)
 	}
 }
 
+void FTMCallbackThread(void *pData)
+{
+  for (;;)
+  {
+    //Wait on the FTM0 Semaphore
+    OS_SemaphoreWait(FTMSemaphore, 0);
+    LEDs_Off(LED_BLUE);
+  }
+}
+
+void PITCallback(void *arg)
+{
+	LEDs_Toggle(LED_GREEN);
+}
 /*!
  * @brief Runs FTM thread
  */
-
 /*! @brief Respond to a Startup packet sent from the PC.
  *
  *  @return bool - TRUE if the packet was handled successfully.
  *  @note Assumes that FreedomInit has been called successfully.
  */
-void HandlePacketVersion()
+bool HandlePacketVersion()
 {
-	Packet_Put(CMD_MCU_SPECIAL, 'v', 0x04, 0);
+	Packet_Put(CMD_MCU_SPECIAL, 'v', 0x06, 0);
 }
 
 /*! @brief Sets or reads the MCU number.
@@ -241,7 +265,7 @@ bool HandlePacketSpecial()
  *
  *  @return bool - TRUE if successfully send, FALSE if packet_put fails
  */
-void SendStartupPackets()
+bool SendStartupPackets()
 {
 	Packet_Parameter1 = 1;
 	// TODO: Send startup packets to the PC.
@@ -255,13 +279,13 @@ void SendStartupPackets()
  *
  *  @return bool - TRUE if successfully send, FALSE if packet_put fails
  */
-void HandleStartupPacket(void)
+bool HandleStartupPacket(void)
 {
   // TODO: Respond to a startup packet sent from the PC
 	SendStartupPackets();
 }
 
-bool HandleTimingMode(void)
+/*bool HandleTimingMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
@@ -307,7 +331,7 @@ bool HandleRMSValues(void)
 	uint8_t highVRMS8 = (uint8_t) highVRMS;
 	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
 	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
-}
+}*/
 
 /*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
 *
@@ -350,7 +374,7 @@ void HandlePackets()
 		success = HandlePacketFlashProgram();
 		break;
 
-		case CMD_TIMING_MODE:
+/*		case CMD_TIMING_MODE:
 		success = HandleTimingMode();
 		break;
 
@@ -360,13 +384,13 @@ void HandlePackets()
 
 		case CMD_NUMBER_OF_LOWERS:
 		success = HandleLowerMode();
-		break;
+		break;*/
 
-		default:
+		/*default:
 		(void)OS_SemaphoreSignal(FG_HandlePacketSemaphore);
 		(void)OS_SemaphoreWait(FG_PacketProcessed, 0);
 		success = FG_PacketHandledSuccessfully;
-		break;
+		break;*/
 }
 
     if (Packet_Command & PACKET_ACK_MASK) //Acknowledgement ensures correct packet is sent and received
@@ -390,11 +414,12 @@ static bool MCUInit(void)
   BOARD_InitBootClocks();
 
   static const uint32_t TimerPeriod = 500000000;
+  bool success;
 
-  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), PITCallbackThread, NULL) && FTM_Init() && FG_Init(SystemCoreClock, &FG_SETUP)) //Initialisation of packet
+  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && FTM_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), &PITCallback, NULL)) //Initialisation of packet
   {
 	 LEDs_On(LED_GREEN); //Call LED function to turn on Green LED
-	 PIT_Set(TimerPeriod, true); //Set PIT Timer period
+	 PIT_Set(TimerPeriod, true); //Set PIT Timer period*/
   }
 
   OS_EnableInterrupts();
@@ -451,8 +476,12 @@ int main(void)
   // Create module initialisation thread
 
   error = OS_ThreadCreate(InitModulesThread, NULL, &InitModulesThreadStack[THREAD_STACK_SIZE-1], 0);
-  error = OS_ThreadCreate(PacketGetThread, NULL, &PacketGetModulesThreadStack[THREAD_STACK_SIZE-1], 5);
-
+  error = OS_ThreadCreate(ReceiveThread, NULL, &ReceiveThreadStack[THREAD_STACK_SIZE-1], 1);
+  error = OS_ThreadCreate(TransmitThread, NULL, &TransmitThreadStack[THREAD_STACK_SIZE-1], 2);
+  /*error = OS_ThreadCreate(FTMCallbackThread, NULL, &FTMCallbackThreadStack[THREAD_STACK_SIZE-1], 5);*/
+  error = OS_ThreadCreate(PacketGetThread, NULL, &PacketGetModulesThreadStack[THREAD_STACK_SIZE-1], 4);
+  error = OS_ThreadCreate(PIT0CallbackThread, NULL, &PIT0CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
+ /*error = OS_ThreadCreate(PIT2CallbackThread, NULL, &PIT2CallbackThreadStack[THREAD_STACK_SIZE-1], 4);*/
   // Start multithreading - never returns!
   OS_Start();
   // If the program returns from OS_Start, we have a major problem!

@@ -15,7 +15,6 @@
 #include "MK64F12.h"
 //Flash functions
 #include "Flash\Flash.h"
-OS_ECB *Flash_Semaphore;
 
 const int8_t FLASH_NUMBER_BYTES = 8;
 
@@ -137,7 +136,6 @@ static bool ModifyPhrase(const uint32_t address, const uint64union_t phrase)
  */
 bool Flash_Init(void)
 {
-	Flash_Semaphore = OS_SemaphoreCreate(1);
 	return true;
 }
 

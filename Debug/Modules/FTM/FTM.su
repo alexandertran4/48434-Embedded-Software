@@ -1,0 +1,7 @@
+core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
+fsl_clock.h:668:20:CLOCK_EnableClock	24	static
+FTM.c:28:6:FTM_Init	8	static
+FTM.c:64:6:FTM_Set	16	static
+FTM.c:116:6:FTM_StartTimer	16	static
+FTM.c:137:6:FTM0_IRQHandler	16	static

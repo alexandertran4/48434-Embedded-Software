@@ -18,10 +18,7 @@
 #include "LEDs\LEDs.h"
 static void (*CallbackFunction)(void*);
 static void *CallbackArguments;
-#define THREAD_STACK_SIZE 100
-static OS_ECB *FTMSemaphore;
-OS_ERROR error;
-OS_THREAD_STACK(FTMCallbackThreadStack, THREAD_STACK_SIZE);
+OS_ECB *FTMSemaphore;
 
 /*! @brief Sets up the FTM before first use.
  *
@@ -46,8 +43,6 @@ bool FTM_Init()
 
 	NVIC_ClearPendingIRQ(FTM0_IRQn);
 	NVIC_EnableIRQ(FTM0_IRQn);
-
-	error = OS_ThreadCreate(FTMCallbackThread, NULL, &FTMCallbackThreadStack[THREAD_STACK_SIZE-1], 4);
 
 	return true;
 }
@@ -110,16 +105,6 @@ bool FTM_Set(const TFTMChannel* const aFTMChannel)
 		}
     break;
 	}
-}
-
-void FTMCallbackThread(void *pData)
-{
-  for (;;)
-  {
-    //Wait on the FTM0 Semaphore
-    OS_SemaphoreWait(FTM0Semaphore, 0);
-    LEDs_Off(LED_BLUE);
-  }
 }
 
 /*! @brief Starts a timer if set up for output compare.

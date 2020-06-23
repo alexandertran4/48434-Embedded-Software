@@ -24,13 +24,15 @@ typedef struct
   uint8_t txPriority;  /*!< txPriority is the transmitter thread priority for the OS. */
 } UARTSetup_t;
 
+void ReceiveThread(void *pData);
+void TransmitThread(void *pData);
 /*! @brief Sets up the UART interface before first use.
  *
  *  @param moduleClk The module clock rate in Hz.
  *  @param uartSetup is a structure containing the parameters to be used in setting up the UART.
  *  @return true if the UART was successfully initialized.
  */
-bool UART_Init(const uint32_t moduleClk, const UARTSetup_t* const uartSetup);
+bool UART_Init(const uint32_t moduleClk,const UARTSetup_t* const uartSetup);
  
 /*! @brief Get a character from the receive FIFO if it is not empty.
  *  Blocking implementation - if there is no character to get, the thread will be suspended

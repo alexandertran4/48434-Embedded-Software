@@ -2,10 +2,10 @@ core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
 core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
 fsl_clock.h:668:20:CLOCK_EnableClock	24	static
 fsl_port.h:243:20:PORT_SetPinConfig	32	static
-UART.c:60:13:ReceiveThread	16	static
-UART.c:73:6:TransmitThread	24	static
-UART.c:96:6:UART_Init	16	static
-UART.c:147:6:UART_InChar	16	static
-UART.c:158:6:UART_OutChar	16	static
-UART.c:163:6:UART_Poll	8	static
-UART.c:180:6:UART0_RX_TX_IRQHandler	8	static
+UART.c:44:6:ReceiveThread	16	static
+UART.c:57:6:TransmitThread	24	static
+UART.c:80:6:UART_Init	16	static
+UART.c:128:6:UART_InChar	16	static
+UART.c:139:6:UART_OutChar	16	static
+UART.c:144:6:UART_Poll	8	static
+UART.c:161:6:UART0_RX_TX_IRQHandler	8	static

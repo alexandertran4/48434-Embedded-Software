@@ -13,8 +13,6 @@
 
 #include "types\types.h"
 
-const int16_t SAMPLES_PER_PERIOD = 16;
-
 void Alarm_Tap();
 void Raise_Tap();
 void Lower_Tap();

@@ -25,11 +25,14 @@
  */
 bool FIFO_Init(TFIFO* const fifo)
 {
+	OS_DisableInterrupts();
 	fifo->Start = 0;
 	fifo->End = 0;
+	fifo->Buffer;
 	//Creating semaphores to signal between threads
-	fifo->ItemsAvailable = OS_SemaphoreCreate(0);
 	fifo->SpaceAvailable = OS_SemaphoreCreate(FIFO_SIZE);
+	fifo->ItemsAvailable = OS_SemaphoreCreate(0);
+	OS_EnableInterrupts();
 
 	return true;
 }
@@ -43,17 +46,16 @@ bool FIFO_Init(TFIFO* const fifo)
  */
 void FIFO_Put(TFIFO* const fifo, const uint8_t data)
 {
-	OS_SemaphoreWait(fifo->SpaceAvailable, 0); //Check capacity of FIFO in order to put data in, if full, fail and return false
 	OS_DisableInterrupts();
+	OS_SemaphoreWait(fifo->SpaceAvailable, 0); //Check capacity of FIFO in order to put data in, if full, fail and return false
 
 	fifo->Buffer[fifo->End] = data; //Put data in FIFO
+    fifo->End++;
 
-	if (fifo->End+1 == FIFO_SIZE)
+	if (fifo->End == FIFO_SIZE)
 	{
 		fifo->End = 0;  //Nearly out of space in FIFO
 	}
-
-	fifo->End++;
 
 	OS_SemaphoreSignal(fifo->ItemsAvailable); //Increase number of items in FIFO
 	OS_EnableInterrupts();
@@ -68,18 +70,21 @@ void FIFO_Put(TFIFO* const fifo, const uint8_t data)
  */
 void FIFO_Get(TFIFO* const fifo, uint8_t* const dataPtr)
 {
-	OS_SemaphoreWait(fifo->ItemsAvailable, 0); //Wait for space to become available in FIFO
 	OS_DisableInterrupts();
+	OS_SemaphoreWait(fifo->ItemsAvailable, 0); //Wait for space to become available in FIFO
+
 	//If data reading is successful, get data from FIFO buffer
 	*dataPtr= fifo->Buffer[fifo->Start];
+	fifo->Start++; //Data can be taken out the next available data
+
 	//Decrease number of bytes in FIFO
 
-	if (fifo->Start+1 == FIFO_SIZE)
+	if (fifo->Start == FIFO_SIZE)
 	{
 	    fifo->Start = 0;
     }
-	fifo->Start++; //Data can be taken out the next available data
-    OS_EnableInterrupts();
 
 	OS_SemaphoreSignal(fifo->SpaceAvailable); //Increments number of spaces available in FIFO
+	OS_EnableInterrupts();
 }
+

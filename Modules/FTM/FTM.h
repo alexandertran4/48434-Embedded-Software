@@ -13,6 +13,8 @@
 
 // new types
 #include "Types\types.h"
+#include "OS.h"
+extern OS_ECB *FTMSemaphore;
 
 typedef enum
 {
@@ -50,6 +52,7 @@ typedef struct
   void *callbackArguments;
 } TFTMChannel;
 
+void FTMCallbackThread(void *pData);
 
 /*! @brief Sets up the FTM before first use.
  *
