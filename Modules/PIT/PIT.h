@@ -18,7 +18,6 @@ extern OS_ECB *PIT0Semaphore;
 extern OS_ECB *PIT2Semaphore;
 
 void PIT0CallbackThread(void *pData);
-void PIT3CallbackThread(void *pData);
 
 /*! @brief Sets up the PIT before first use.
  *
@@ -44,11 +43,7 @@ void PIT_Set(const uint64_t period, const bool restart);
  *
  *  @param enable - TRUE if the PIT is to be enabled, FALSE if the PIT is to be disabled.
  */
-void PIT_Set3(const uint32_t period, const bool restart);
-
 void PIT_Enable(const bool enable);
-
-void PIT_Enable3(const bool enable);
 
 /*! @brief Interrupt service routine for the PIT.
  *

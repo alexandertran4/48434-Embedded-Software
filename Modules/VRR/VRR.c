@@ -17,7 +17,11 @@
 #include "LEDs\LEDs.h"
 #include <math.h>
 
+channelData_t Samples[1];
+
 const int16_t NB_OF_SAMPLES = 16;
+const int16_t UPPER_RANGE = 9830.3;
+const int16_t LOWER_RANGE = 6553.5;
 
 int16_t VoltRMS(int16_t Sample[NB_OF_SAMPLES])
 {
@@ -35,10 +39,13 @@ int16_t VoltRMS(int16_t Sample[NB_OF_SAMPLES])
 void Definte_Mode(void)
 {
 	uint64_t TimerPeriod = 5000000000;
-	PIT_Set(5000000000, false);
+	PIT_Set(TimerPeriod, false);
 }
 
-
+void Voltage_Checker(int16_t voltRMS)
+{
+	if((voltRMS > ))
+}
 void Alarm_Tap()
 {
 	LEDs_On(LED_RED);

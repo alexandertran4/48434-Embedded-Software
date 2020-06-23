@@ -119,6 +119,9 @@ const uint16_t STUDENT_NUMBER = 0x655;
 //Last 4 digits of student number converted to binary form
 static uint8_t MCU_NUM_L = 0b10001111;
 static uint8_t MCU_NUM_H = 0b00000010;
+int8_t Nb_Raises; //Number of raises VRR
+int8_t Nb_Lowers; //Number of lower voltage VRR
+int8_t Timing_Mode; //Timing Mode, Inverse or Definite
 
 void UARTTimerCallback(void *arg)
 {
@@ -286,7 +289,7 @@ bool HandleAnalogPacket(void)
 	Packet_Put(CMD_ANALOG, 0x00, value.s.Lo, value.s.Hi);
 }
 
-/*
+
 bool HandleTimingMode(void)
 {
 	if (Packet_Parameter1 == 0)
@@ -298,17 +301,16 @@ bool HandleTimingMode(void)
 		Timing_Mode = Packet_Parameter1;
 	}
 }
-*/
 
-/*bool HandleRaiseMode(void)
+bool HandleRaiseMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
-		Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raise, 0, 0);
+		Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raises, 0, 0);
 	}
 	else if (Packet_Parameter1 == 1)
 	{
-		Nb_Raise = 0;
+		Nb_Raises = 0;
 	}
 }
 
@@ -334,7 +336,7 @@ bool HandleRMSValues(void)
 	uint8_t highVRMS8 = (uint8_t) highVRMS;
 	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
 	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
-}*/
+}
 
 /*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
 *
@@ -381,7 +383,7 @@ void HandlePackets()
 		success = HandleAnalogPacket();
 		break;
 
-       /* case CMD_TIMING_MODE:
+        case CMD_TIMING_MODE:
 		success = HandleTimingMode();
 		break;
 
@@ -392,7 +394,7 @@ void HandlePackets()
 		case CMD_NUMBER_OF_LOWERS:
 		success = HandleLowerMode();
 		break;
-*/
+
 		default:
 		(void)OS_SemaphoreSignal(FG_HandlePacketSemaphore);
 		(void)OS_SemaphoreWait(FG_PacketProcessed, 0);
@@ -455,6 +457,9 @@ static void InitModulesThread(void *pData)
 
 	 volatile uint16union_t *NvMCUNb; //Allocate space in flash for MCU number
 	 volatile uint16union_t *NvModeNb; //Allocate space for flash in MCU Mode
+	 int8_t *Nb_Raise = &Nb_Raises; //Allocate space in flash for Raises
+	 int8_t *Nb_Lower = &Nb_Lowers; //Allocate space in flash for Lowers
+
 	 static bool success;
 
 	 success = Flash_AllocateVar((volatile void **)&NvMCUNb, sizeof(*NvMCUNb));
@@ -470,6 +475,20 @@ static void InitModulesThread(void *pData)
 	 {
 	     Flash_Write16((volatile uint16_t*)NvModeNb, MCU_MODE);
 	 }
+
+	 success = Flash_AllocateVar((void*)&Nb_Raise, sizeof(*Nb_Raise));
+
+	 if (success && (Nb_Raise->l == Oxffff)) //Check if flash is erased
+	 {
+	     Flash_Write8((int8_t* )Nb_Raise, 0);
+	 }
+
+	   success = Flash_AllocateVar((void*)&Nb_Lower, sizeof(*Nb_Lower));
+
+	   if (success && (Nb_Lower->l == 0xffff))
+	   {
+	      Flash_Write8((int8_t* )Nb_Lower, 0);
+	   }
 
 	 OS_ThreadDelete(OS_PRIORITY_SELF);
 }
