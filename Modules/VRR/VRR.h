@@ -12,6 +12,9 @@
 #define VRR_H_
 
 #include "types\types.h"
+extern int8_t Nb_Raises; //Number of raises VRR
+extern int8_t Nb_Lowers; //Number of lower voltage VRR
+extern int8_t Timing_Mode; //Timing Mode, Inverse or Definite
 
 typedef struct
 {

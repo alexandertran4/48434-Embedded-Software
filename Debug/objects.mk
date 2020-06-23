@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lOS -lFG
+LIBS := -lLab3 -lOS -lFG
 

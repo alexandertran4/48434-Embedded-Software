@@ -6,7 +6,7 @@
  * Generated linker script file for MK64FN1M0xxx12
  * Created from library.ldt by FMCreateLinkLibraries
  * Using Freemarker v2.3.23
- * MCUXpresso IDE v11.1.1 [Build 3241] [2020-03-02] on 23/06/2020 10:06:20 PM
+ * MCUXpresso IDE v11.1.1 [Build 3241] [2020-03-02] on 24/06/2020 2:34:43 AM
  */
 
 GROUP (

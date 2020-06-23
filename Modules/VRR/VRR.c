@@ -15,6 +15,7 @@
 #include "VRR\VRR.h"
 #include "FG.h"
 #include "LEDs\LEDs.h"
+#include "ADC\ADC.h"
 #include <math.h>
 
 channelData_t Samples[1];
@@ -22,8 +23,31 @@ channelData_t Samples[1];
 const int16_t NB_OF_SAMPLES = 16;
 const int16_t UPPER_RANGE = 9830.3;
 const int16_t LOWER_RANGE = 6553.5;
+int16_t newVRMS;
+float timeTaken;
+float timeGlobal;
 
-int16_t VoltRMS(int16_t Sample[NB_OF_SAMPLES])
+void Alarm_Tap()
+{
+	LEDs_On(LED_RED); //Turn on Red LED
+}
+
+void Raise_Tap()
+{
+	LEDs_On(LED_GREEN); //Turn on Green LED
+}
+
+void Lower_Tap()
+{
+	LEDs_On(LED_BLUE); //Turn on Blue LED
+}
+
+void Idle_Signal()
+{
+	LEDs_Off(LED_GREEN | LED_BLUE | LED_RED); //Turn off all LEDs
+}
+
+int16_t Calc_RMS(int16_t Sample[NB_OF_SAMPLES])
 {
 	float voltRMS;
 
@@ -44,24 +68,41 @@ void Definte_Mode(void)
 
 void Voltage_Checker(int16_t voltRMS)
 {
-	if((voltRMS > ))
-}
-void Alarm_Tap()
-{
-	LEDs_On(LED_RED);
+
+	//If RMS voltage is out of range trigger Alarm Signal
+	if (voltRMS > UPPER_RANGE || voltRMS < LOWER_RANGE )
+	{
+		Alarm_Tap();
+	}
+
+	//If RMS voltage is within range, clear all time variables and set idle signal
+	if (voltRMS < UPPER_RANGE || voltRMS > LOWER_RANGE)
+	{
+		timeTaken = 0;
+		timeGlobal = 0;
+		Idle_Signal();
+	}
 }
 
-void Raise_Tap()
+void Definite_Check(void)
 {
-	LEDs_On(LED_GREEN);
+	newVRMS = Samples[1].voltRMS;
+
+	if (newVRMS > UPPER_RANGE)
+	{
+		Lower_Tap();
+		Nb_Lowers++;
+	}
+
+	else if (newVRMS < LOWER_RANGE)
+	{
+		Raise_Tap();
+		Nb_Raises++;
+	}
+
+	else
+	{
+		Idle_Signal();
+	}
 }
 
-void Lower_Tap()
-{
-	LEDs_On(LED_BLUE);
-}
-
-void Idle_Signal()
-{
-	LEDs_Off(LED_GREEN | LED_BLUE | LED_RED);
-}

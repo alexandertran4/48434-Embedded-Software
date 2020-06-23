@@ -326,7 +326,7 @@ bool HandleLowerMode(void)
   }
 }
 
-bool HandleRMSValues(void)
+/*bool HandleRMSValues(void)
 {
     Packet_Parameter1 = 1;
 
@@ -336,7 +336,7 @@ bool HandleRMSValues(void)
 	uint8_t highVRMS8 = (uint8_t) highVRMS;
 	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
 	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
-}
+}*/
 
 /*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
 *
@@ -476,19 +476,15 @@ static void InitModulesThread(void *pData)
 	     Flash_Write16((volatile uint16_t*)NvModeNb, MCU_MODE);
 	 }
 
-	 success = Flash_AllocateVar((void*)&Nb_Raise, sizeof(*Nb_Raise));
-
-	 if (success && (Nb_Raise->l == Oxffff)) //Check if flash is erased
+	 if (Flash_AllocateVar((void*)&Nb_Raise, sizeof(*Nb_Raise)))
 	 {
-	     Flash_Write8((int8_t* )Nb_Raise, 0);
+	     Flash_Write8((int8_t*)Nb_Raise, 0);
 	 }
 
-	   success = Flash_AllocateVar((void*)&Nb_Lower, sizeof(*Nb_Lower));
-
-	   if (success && (Nb_Lower->l == 0xffff))
-	   {
-	      Flash_Write8((int8_t* )Nb_Lower, 0);
-	   }
+	 if (Flash_AllocateVar((void*)&Nb_Lower, sizeof(*Nb_Lower)))
+	 {
+	     Flash_Write8((int8_t*)Nb_Lower, 0);
+	 }
 
 	 OS_ThreadDelete(OS_PRIORITY_SELF);
 }
