@@ -48,19 +48,16 @@
 #include "FG.h"
 #include "VRR\VRR.h"
 #include "ADC\ADC.h"
-
+#include "Library\FG.h"
 // Simple OS
 #include "OS.h"
-#include "FG.h"
+
 #define DEBUG_HALT __asm( "BKPT 255")
 
 // Arbitrary thread stack size - big enough for stacking of interrupts and OS use.
 #define THREAD_STACK_SIZE 100
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
-OS_ECB* FG_HandlePacketSemaphore; /*!< Semaphore used to initiate FG packet handling. */
-OS_ECB* FG_PacketProcessed;          /*!< Semaphore used to signal the end of FG packet handling. */
-bool FG_PacketHandledSuccessfully;
 const uint32_t BAUD_RATE = 115200;
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
@@ -386,11 +383,11 @@ void HandlePackets()
 		success = HandleLowerMode();
 		break;*/
 
-		/*default:
+		default:
 		(void)OS_SemaphoreSignal(FG_HandlePacketSemaphore);
 		(void)OS_SemaphoreWait(FG_PacketProcessed, 0);
 		success = FG_PacketHandledSuccessfully;
-		break;*/
+		break;
 }
 
     if (Packet_Command & PACKET_ACK_MASK) //Acknowledgement ensures correct packet is sent and received
@@ -421,6 +418,10 @@ static bool MCUInit(void)
 	 LEDs_On(LED_GREEN); //Call LED function to turn on Green LED
 	 PIT_Set(TimerPeriod, true); //Set PIT Timer period*/
   }
+
+  success = FG_Init(SystemCoreClock, &FG_SETUP);
+  if (!success)
+  return false;
 
   OS_EnableInterrupts();
 

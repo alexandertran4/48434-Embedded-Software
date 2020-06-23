@@ -4,12 +4,18 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../source/kiss_fft.c \
+../source/kiss_fftr.c \
 ../source/main.c 
 
 OBJS += \
+./source/kiss_fft.o \
+./source/kiss_fftr.o \
 ./source/main.o 
 
 C_DEPS += \
+./source/kiss_fft.d \
+./source/kiss_fftr.d \
 ./source/main.d 
 
 
