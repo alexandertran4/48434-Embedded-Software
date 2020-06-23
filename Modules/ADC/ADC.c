@@ -26,6 +26,7 @@
 #include "fsl_port.h"
 #include "fsl_clock.h"
 #include "OS.h"
+#include "types\types.h"
 
 bool ADC_Init(const uint32_t moduleClock)
 {

@@ -14,7 +14,6 @@
 // new types
 #include "Types\types.h"
 #include "OS.h"
-extern OS_ECB *FTMSemaphore;
 
 typedef enum
 {

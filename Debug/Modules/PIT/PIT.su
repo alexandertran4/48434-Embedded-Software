@@ -1,12 +1,8 @@
 core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static
 core_cm4.h:1768:22:__NVIC_ClearPendingIRQ	16	static
 fsl_clock.h:668:20:CLOCK_EnableClock	24	static
-PIT.c:27:6:PIT0CallbackThread	16	static
-PIT.c:40:6:PIT2CallbackThread	16	static
-PIT.c:61:6:PIT_Init	24	static
-PIT.c:93:6:PIT_Set	40	static
-PIT.c:111:6:PIT_Set2	40	static
-PIT.c:135:6:PIT_Enable	16	static
-PIT.c:148:6:PIT_Enable2	16	static
-PIT.c:166:6:PIT0_IRQHandler	8	static
-PIT.c:178:6:PIT2_IRQHandler	8	static
+PIT.c:26:6:PIT0CallbackThread	16	static
+PIT.c:48:6:PIT_Init	24	static
+PIT.c:75:6:PIT_Set	48	static
+PIT.c:97:6:PIT_Enable	16	static
+PIT.c:118:6:PIT0_IRQHandler	8	static

@@ -24,7 +24,7 @@
 #include "fsl_port.h"
 #include "system_MK64F12.h"
 // New types
-#include "Types\types.h"
+#include "types\types.h"
 // FIFO Buffer
 #include "FIFO\FIFO.h"
 // Serial Communication Interface
@@ -55,7 +55,7 @@
 #define DEBUG_HALT __asm( "BKPT 255")
 
 // Arbitrary thread stack size - big enough for stacking of interrupts and OS use.
-#define THREAD_STACK_SIZE 100
+#define THREAD_STACK_SIZE 150
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
 const uint32_t BAUD_RATE = 115200;
@@ -66,9 +66,7 @@ OS_THREAD_STACK(PacketGetModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack 
 /*!< The stack for the PIT thread. */
 OS_THREAD_STACK(ReceiveThreadStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(TransmitThreadStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(FTMCallbackThreadStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT0CallbackThreadStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PIT2CallbackThreadStack, THREAD_STACK_SIZE);
 // Commands
 // TODO: Define the commands using enum.
 enum Command {
@@ -121,8 +119,11 @@ const uint16_t STUDENT_NUMBER = 0x655;
 //Last 4 digits of student number converted to binary form
 static uint8_t MCU_NUM_L = 0b10001111;
 static uint8_t MCU_NUM_H = 0b00000010;
-//Latest bytes of accelerometer data, X, Y and Z
 
+void UARTTimerCallback(void *arg)
+{
+	LEDs_Off(LED_BLUE);
+}
 /*!
  * @brief Runs Packet Get thread
  */
@@ -133,16 +134,6 @@ void PacketGetThread(void *pData)
 		Packet_Get();
 		HandlePackets();
 	}
-}
-
-void FTMCallbackThread(void *pData)
-{
-  for (;;)
-  {
-    //Wait on the FTM0 Semaphore
-    OS_SemaphoreWait(FTMSemaphore, 0);
-    LEDs_Off(LED_BLUE);
-  }
 }
 
 void PITCallback(void *arg)
@@ -282,7 +273,21 @@ bool HandleStartupPacket(void)
 	SendStartupPackets();
 }
 
-/*bool HandleTimingMode(void)
+uint16union_t ReadAnalogValues()
+{
+	int16_t Analog_Read;
+	Analog_Read = ADC_Read();
+}
+
+bool HandleAnalogPacket(void)
+{
+	uint16union_t value = ReadAnalogValues();
+
+	Packet_Put(CMD_ANALOG, 0x00, value.s.Lo, value.s.Hi);
+}
+
+/*
+bool HandleTimingMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
@@ -293,8 +298,9 @@ bool HandleStartupPacket(void)
 		Timing_Mode = Packet_Parameter1;
 	}
 }
+*/
 
-bool HandleRaiseMode(void)
+/*bool HandleRaiseMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
@@ -371,7 +377,11 @@ void HandlePackets()
 		success = HandlePacketFlashProgram();
 		break;
 
-/*		case CMD_TIMING_MODE:
+		case CMD_ANALOG:
+		success = HandleAnalogPacket();
+		break;
+
+       /* case CMD_TIMING_MODE:
 		success = HandleTimingMode();
 		break;
 
@@ -381,8 +391,8 @@ void HandlePackets()
 
 		case CMD_NUMBER_OF_LOWERS:
 		success = HandleLowerMode();
-		break;*/
-
+		break;
+*/
 		default:
 		(void)OS_SemaphoreSignal(FG_HandlePacketSemaphore);
 		(void)OS_SemaphoreWait(FG_PacketProcessed, 0);
@@ -410,10 +420,10 @@ static bool MCUInit(void)
   BOARD_InitPins();
   BOARD_InitBootClocks();
 
-  static const uint32_t TimerPeriod = 500000000;
   bool success;
+  const uint64_t TimerPeriod = 500000000;
 
-  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && FTM_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), &PITCallback, NULL)) //Initialisation of packet
+  if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && FTM_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), &PITCallback, NULL) && ADC_Init(CLOCK_GetFreq(kCLOCK_BusClk))) //Initialisation of packet
   {
 	 LEDs_On(LED_GREEN); //Call LED function to turn on Green LED
 	 PIT_Set(TimerPeriod, true); //Set PIT Timer period*/
@@ -479,10 +489,8 @@ int main(void)
   error = OS_ThreadCreate(InitModulesThread, NULL, &InitModulesThreadStack[THREAD_STACK_SIZE-1], 0);
   error = OS_ThreadCreate(ReceiveThread, NULL, &ReceiveThreadStack[THREAD_STACK_SIZE-1], 1);
   error = OS_ThreadCreate(TransmitThread, NULL, &TransmitThreadStack[THREAD_STACK_SIZE-1], 2);
-  /*error = OS_ThreadCreate(FTMCallbackThread, NULL, &FTMCallbackThreadStack[THREAD_STACK_SIZE-1], 5);*/
   error = OS_ThreadCreate(PacketGetThread, NULL, &PacketGetModulesThreadStack[THREAD_STACK_SIZE-1], 4);
   error = OS_ThreadCreate(PIT0CallbackThread, NULL, &PIT0CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
- /*error = OS_ThreadCreate(PIT2CallbackThread, NULL, &PIT2CallbackThreadStack[THREAD_STACK_SIZE-1], 4);*/
   // Start multithreading - never returns!
   OS_Start();
   // If the program returns from OS_Start, we have a major problem!

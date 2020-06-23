@@ -8,6 +8,8 @@
 #ifndef ADC_ADC_H_
 #define ADC_ADC_H_
 
+#include "types\types.h"
+
 /*! @brief Sets up the ADC before first use.
  *
  *  @param moduleClock The module clock rate in Hz.

@@ -13,8 +13,7 @@ Modules/FTM/FTM.o Modules/FTM/FTM.d: ../Modules/FTM/FTM.c \
  C:\Users\User\git\Project\device/fsl_device_registers.h \
  C:\Users\User\git\Project\device/MK64F12.h \
  C:\Users\User\git\Project\device/MK64F12_features.h \
- C:\Users\User\git\Project\drivers/fsl_clock.h \
- C:\Users\User\git\Project\Modules/LEDs\LEDs.h
+ C:\Users\User\git\Project\drivers/fsl_clock.h
 
 C:\Users\User\git\Project\Modules/Types\types.h:
 
@@ -45,5 +44,3 @@ C:\Users\User\git\Project\device/MK64F12.h:
 C:\Users\User\git\Project\device/MK64F12_features.h:
 
 C:\Users\User\git\Project\drivers/fsl_clock.h:
-
-C:\Users\User\git\Project\Modules/LEDs\LEDs.h:

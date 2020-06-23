@@ -16,8 +16,9 @@ source/main.o source/main.d: ../source/main.c \
  C:\Users\User\git\Project\drivers/fsl_gpio.h \
  C:\Users\User\git\Project\drivers/fsl_port.h \
  C:\Users\User\git\Project\device/system_MK64F12.h \
- C:\Users\User\git\Project\Modules/Types\types.h \
+ C:\Users\User\git\Project\Modules/types\types.h \
  C:\Users\User\git\Project\Modules/FIFO\FIFO.h \
+ C:\Users\User\git\Project\Modules/Types\types.h \
  C:\Users\User\git\Project\Library/OS.h \
  C:\Users\User\git\Project\Modules/UART\UART.h \
  C:\Users\User\git\Project\Modules/Flash\Flash.h \
@@ -30,7 +31,6 @@ source/main.o source/main.d: ../source/main.c \
  C:\Users\User\git\Project\Library/FG.h \
  C:\Users\User\git\Project\Library/OS.h \
  C:\Users\User\git\Project\Modules/VRR\VRR.h \
- C:\Users\User\git\Project\Modules/types\types.h \
  C:\Users\User\git\Project\Modules/ADC\ADC.h \
  C:\Users\User\git\Project/Library\FG.h
 
@@ -68,9 +68,11 @@ C:\Users\User\git\Project\drivers/fsl_port.h:
 
 C:\Users\User\git\Project\device/system_MK64F12.h:
 
-C:\Users\User\git\Project\Modules/Types\types.h:
+C:\Users\User\git\Project\Modules/types\types.h:
 
 C:\Users\User\git\Project\Modules/FIFO\FIFO.h:
+
+C:\Users\User\git\Project\Modules/Types\types.h:
 
 C:\Users\User\git\Project\Library/OS.h:
 
@@ -95,8 +97,6 @@ C:\Users\User\git\Project\Library/FG.h:
 C:\Users\User\git\Project\Library/OS.h:
 
 C:\Users\User\git\Project\Modules/VRR\VRR.h:
-
-C:\Users\User\git\Project\Modules/types\types.h:
 
 C:\Users\User\git\Project\Modules/ADC\ADC.h:
 

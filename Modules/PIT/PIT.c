@@ -22,7 +22,6 @@
 static void (*Userfunction)(void*); /*!< User function to be called by the PIT ISR. */
 static void* Userarguments; /*!< Arguments to pass to the PIT user function. */
 OS_ECB *PIT0Semaphore;
-OS_ECB *PIT2Semaphore;
 
 void PIT0CallbackThread(void *pData)
 {
@@ -37,18 +36,6 @@ void PIT0CallbackThread(void *pData)
 	}
 }
 
-void PIT2CallbackThread(void *pData)
-{
-	for (;;)
-	{
-		OS_SemaphoreWait(PIT0Semaphore, 0);
-
-		if (Userfunction)
-		{
-			(*Userfunction)(Userarguments);
-		}
-	}
-}
 /*! @brief Sets up the PIT before first use.
  *
  *  Enables the PIT and freezes the timer when debugging.
@@ -61,7 +48,6 @@ void PIT2CallbackThread(void *pData)
 bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userArguments)
 {
 	PIT0Semaphore = OS_SemaphoreCreate(0);
-	PIT2Semaphore = OS_SemaphoreCreate(0);
 
 	Userfunction = userFunction;
 	Userarguments = userArguments;
@@ -72,13 +58,9 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
 	PIT->MCR &= ~PIT_MCR_FRZ_MASK;
 
 	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;//enables interrupts for PIT-channel 0
-	PIT->CHANNEL[2].TCTRL |= PIT_TCTRL_TIE_MASK;
 
 	NVIC_ClearPendingIRQ(PIT0_IRQn);
 	NVIC_EnableIRQ(PIT0_IRQn);
-
-	NVIC_ClearPendingIRQ(PIT2_IRQn);
-	NVIC_EnableIRQ(PIT2_IRQn);
 
 	return true;
 }
@@ -90,7 +72,7 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
  *                 FALSE if the PIT will use the new value after a trigger event.
  *  @note The function will enable the timer and interrupts for the PIT.
  */
-void PIT_Set(const uint32_t period, const bool restart)
+void PIT_Set(const uint64_t period, const bool restart)
 {
 	//K64 module refers to these variables
 	static uint32_t PITmoduleClk;
@@ -107,26 +89,6 @@ void PIT_Set(const uint32_t period, const bool restart)
 		PIT_Enable(true);
 	}
 }
-
-void PIT_Set2(const uint32_t period, const bool restart)
-{
-	//K64 module refers to these variables
-	static uint32_t PITmoduleClk;
-	uint32_t freqHz = 1e9 / period;
-	uint32_t cycleCount = PITmoduleClk / freqHz;
-	uint32_t triggerVal = cycleCount - 1;
-
-	//TSV - Timer Start Value.
-
-	PIT->CHANNEL[2].LDVAL = PIT_LDVAL_TSV(triggerVal);
-
-		if (restart)
-		{
-			PIT_Enable2(false);
-			PIT_Enable2(true);
-		}
-}
-
 
 /*! @brief Enables or disables the PIT.
  *
@@ -145,17 +107,6 @@ void PIT_Enable(const bool enable)
 	}
 }
 
-void PIT_Enable2(const bool enable)
-{
-	if (enable == true)
-	{
-		PIT->CHANNEL[2].TCTRL |= PIT_TCTRL_TEN_MASK; //enable timer 2
-	}
-	else
-	{
-		PIT->CHANNEL[2].TCTRL &= ~PIT_TCTRL_TEN_MASK; //disable timer 2
-	}
-}
 
 /*! @brief Interrupt service routine for the PIT.
  *
@@ -163,6 +114,7 @@ void PIT_Enable2(const bool enable)
  *  The user callback function will be called.
  *  @note Assumes the PIT has been initialized.
  */
+
 void PIT0_IRQHandler(void)
 {
 	OS_ISREnter();
@@ -171,18 +123,6 @@ void PIT0_IRQHandler(void)
 	PIT->CHANNEL[0].TFLG |= PIT_TFLG_TIF_MASK;
 
 	OS_SemaphoreSignal(PIT0Semaphore);
-
-	OS_ISRExit();
-}
-
-void PIT2_IRQHandler(void)
-{
-	OS_ISREnter();
-
-	//clear flag
-	PIT->CHANNEL[2].TFLG |= PIT_TFLG_TIF_MASK;
-
-	OS_SemaphoreSignal(PIT2Semaphore);
 
 	OS_ISRExit();
 }

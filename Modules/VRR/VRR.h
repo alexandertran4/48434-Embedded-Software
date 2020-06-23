@@ -13,6 +13,13 @@
 
 #include "types\types.h"
 
+typedef struct
+{
+	int16_t sampleArray[16]; //Array to store samples
+	int16_t voltRMS; //Voltage RMS values
+}
+channelData_t;
+
 void Alarm_Tap();
 void Raise_Tap();
 void Lower_Tap();

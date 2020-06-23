@@ -14,11 +14,8 @@
 #include "MK64F12.h"
 #include "core_cm4.h"
 #include "fsl_clock.h"
-#include "OS.h"
-#include "LEDs\LEDs.h"
 static void (*CallbackFunction)(void*);
 static void *CallbackArguments;
-OS_ECB *FTMSemaphore;
 
 /*! @brief Sets up the FTM before first use.
  *
@@ -27,8 +24,6 @@ OS_ECB *FTMSemaphore;
  */
 bool FTM_Init()
 {
-	FTMSemaphore = OS_SemaphoreCreate(0); //Create FTM0 Semaphore
-
 	static const uint32_t FIXED_FREQUENCY_CLOCK = 0b10;
 
 	CLOCK_EnableClock(kCLOCK_Ftm0);
@@ -136,8 +131,6 @@ bool FTM_StartTimer(const TFTMChannel* const aFTMChannel)
 
 void FTM0_IRQHandler(void)
 {
-	OS_ISREnter();
-
 	for(uint8_t channel = 0; channel < 8; channel++)
 	{
 		if (FTM0->CONTROLS[channel].CnSC & FTM_CnSC_CHF_MASK)
@@ -145,14 +138,10 @@ void FTM0_IRQHandler(void)
 			//Check if interrupt is enabled for channel and check if the flag is set for that channel
 			if (!(FTM0->CONTROLS[channel].CnSC & FTM_CnSC_MSB_MASK) && (FTM0->CONTROLS[channel].CnSC & FTM_CnSC_MSA_MASK))
 			{
-				FTM0->CONTROLS[channel].CnSC &= ~FTM_CnSC_CHF_MASK;
-
-				FTM0->CONTROLS[channel].CnSC &= ~FTM_CnSC_CHIE_MASK; //Disable Interrupt
-
-				OS_SemaphoreSignal(FTMSemaphore);
+				(*CallbackFunction)(CallbackArguments);
 			}
+
+			FTM0->CONTROLS[channel].CnSC &= ~FTM_CnSC_CHF_MASK;
 		}
 	}
-
-	OS_ISRExit();
 }

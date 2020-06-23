@@ -15,6 +15,29 @@
 #include "VRR\VRR.h"
 #include "FG.h"
 #include "LEDs\LEDs.h"
+#include <math.h>
+
+const int16_t NB_OF_SAMPLES = 16;
+
+int16_t VoltRMS(int16_t Sample[NB_OF_SAMPLES])
+{
+	float voltRMS;
+
+	for (int i = 0; i < NB_OF_SAMPLES; i++)
+	{
+		voltRMS += pow(Sample[i], 2);
+	}
+
+	voltRMS = voltRMS/16;
+	voltRMS = sqrt(voltRMS);
+}
+
+void Definte_Mode(void)
+{
+	uint64_t TimerPeriod = 5000000000;
+	PIT_Set(5000000000, false);
+}
+
 
 void Alarm_Tap()
 {
