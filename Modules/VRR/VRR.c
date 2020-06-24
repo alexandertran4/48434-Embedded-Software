@@ -243,7 +243,7 @@ void Inverse_Boundary()
  */
 void Frequency_Tracking(void)
 {
-	float period;
+	float period = 16;
 	float frequency;
 
 	frequency = 1 / period; //Frequency calculation
