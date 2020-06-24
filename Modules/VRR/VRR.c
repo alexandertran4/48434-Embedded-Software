@@ -67,8 +67,11 @@ void Idle_Signal()
 {
 	LEDs_Off(LED_GREEN | LED_BLUE | LED_RED); //Turn off all LEDs
 }
-
-int16_t Calc_RMS(int16_t Sample[])
+/*! @brief Calculates the RMS voltage value
+ *
+ *  @param Sample array of 16 samples
+ */
+int16_t Calc_RMS(int16_t Sample[NB_OF_SAMPLES])
 {
 	float voltRMS;
 
