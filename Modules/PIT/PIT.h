@@ -17,7 +17,17 @@
 extern OS_ECB *PIT2Semaphore;
 extern OS_ECB *PIT3Semaphore;
 
-void PIT0CallbackThread(void *pData);
+/*! @brief Thread to control PIT channel 2
+ *
+ *  @param pData - Thread data pointer.
+ */
+void PIT2CallbackThread(void *pData);
+
+/*! @brief Thread to control PIT channel 3
+ *
+ *  @param pData - Thread data pointer.
+ */
+void PIT3CallbackThread(void *pData);
 
 /*! @brief Sets up the PIT before first use.
  *
@@ -39,11 +49,28 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
  */
 void PIT_Set(const uint64_t period, const bool restart);
 
+/*! @brief Sets the value of the desired period of the PIT.
+ *
+ *  @param period The desired value of the timer period in nanoseconds.
+ *  @param restart TRUE if the PIT is disabled, a new value set, and then enabled.
+ *                 FALSE if the PIT will use the new value after a trigger event.
+ *  @note The function will enable the timer and interrupts for the PIT.
+ */
+void PIT_Set3(const uint32_t period, const bool restart);
+
 /*! @brief Enables or disables the PIT.
  *
  *  @param enable - TRUE if the PIT is to be enabled, FALSE if the PIT is to be disabled.
  */
 void PIT_Enable(const bool enable);
+
+/*! @brief Interrupt service routine for the PIT.
+ *
+ *  The periodic interrupt timer has timed out.
+ *  The user callback function will be called.
+ *  @note Assumes the PIT has been initialized.
+ */
+void PIT_Enable3(const bool enable);
 
 /*! @brief Interrupt service routine for the PIT.
  *

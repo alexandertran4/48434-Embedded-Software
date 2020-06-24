@@ -19,9 +19,7 @@ bool ADC_Init(uint32_t moduleClock);
 
 /*! @brief Takes a sample from ADC Channel 23.
  *
- *  @return bool - true if the channel was read successfully.
+ *  @return ADC Register if the channel was read successfully.
  */
 int16_t ADC_Read();
-
-
 #endif /* ADC_ADC_H_ */

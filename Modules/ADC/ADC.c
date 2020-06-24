@@ -27,7 +27,11 @@
 #include "fsl_clock.h"
 #include "OS.h"
 #include "types\types.h"
-
+/*! @brief Sets up the ADC before first use.
+ *
+ *  @param moduleClock The module clock rate in Hz.
+ *  @return bool - true if the UART was successfully initialized.
+ */
 bool ADC_Init(const uint32_t moduleClock)
 {
 	CLOCK_EnableClock(kCLOCK_Adc0);
@@ -38,6 +42,10 @@ bool ADC_Init(const uint32_t moduleClock)
 	return true;
 }
 
+/*! @brief Takes a sample from ADC Channel 23.
+ *
+ *  @return ADC Register if the channel was read successfully.
+ */
 int16_t ADC_Read()
 {
 	/*ADC0->SC1[0] |= ADC_SC1_DIFF(0); *///Set Differential Mode to 0 for Unipolar/Single ended conversion
@@ -46,10 +54,4 @@ int16_t ADC_Read()
 	while(!(ADC0->SC1[0] & ADC_SC1_COCO_MASK)); //Wait until conversion is complete
 
 	return ADC0->R[0];
-
-	/*for (valueData = 0; valueData < NUMBER_OF_SAMPLES; valueData++) //Store up to 16 sample values in the ADC Register
-	{
-		value[valueData] = ADC0->R[A]; //Store values of the samples to ADC register
-	}*/
 }
-

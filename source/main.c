@@ -40,7 +40,6 @@
 //RTC
 //Critical Sections
 #include "Critical\critical.h"
-//I2C
 //Median
 #include "Median\median.h"
 //Accelerometer
@@ -55,18 +54,17 @@
 #define DEBUG_HALT __asm( "BKPT 255")
 
 // Arbitrary thread stack size - big enough for stacking of interrupts and OS use.
-#define THREAD_STACK_SIZE 150
+#define THREAD_STACK_SIZE 200
 #define NB_LEDS 3
 static TFTMChannel UART_TIMER;
 const uint32_t BAUD_RATE = 115200;
 // Thread stacks
-OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
+OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the Initialisation thread. */
 OS_THREAD_STACK(PacketGetModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the PACKET GET thread. */
-/*!< The stack for the FTM thread. */
-/*!< The stack for the PIT thread. */
-OS_THREAD_STACK(ReceiveThreadStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(TransmitThreadStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PIT0CallbackThreadStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(ReceiveThreadStack, THREAD_STACK_SIZE);/*!< The stack for the UART Receive thread. */
+OS_THREAD_STACK(TransmitThreadStack, THREAD_STACK_SIZE);/*!< The stack for the UART Transmit thread. */
+OS_THREAD_STACK(PIT2CallbackThreadStack, THREAD_STACK_SIZE); /*!< The stack for the FTM thread. */
+OS_THREAD_STACK(PIT3CallbackThreadStack, THREAD_STACK_SIZE); /*!< The stack for the FTM thread. */
 // Commands
 // TODO: Define the commands using enum.
 enum Command {
@@ -103,7 +101,6 @@ const FGSetup_t FG_SETUP =
 
 const UARTSetup_t UART_SETUP =
 {
-	/*!< A pointer to the global Packet structure. */
 	.baudRate = BAUD_RATE,
 	.rxPriority = RX_PRIORITY,
 	.txPriority = TX_PRIORITY
@@ -276,6 +273,7 @@ bool HandleStartupPacket(void)
 	SendStartupPackets();
 }
 
+/*
 uint16union_t ReadAnalogValues()
 {
 	int16_t Analog_Read;
@@ -288,35 +286,47 @@ bool HandleAnalogPacket(void)
 
 	Packet_Put(CMD_ANALOG, 0x00, value.s.Lo, value.s.Hi);
 }
+*/
 
-
+/*! @brief Handles Timing Packets
+ *
+ *  @return bool - TRUE if successfully send, FALSE if packet_put fails
+ */
 bool HandleTimingMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
-		Packet_Put(CMD_TIMING_MODE, Timing_Mode, 0, 0);
+		Packet_Put(CMD_TIMING_MODE, Timing_Mode, 0, 0); //Retrieve timing mode
 	}
 	else if (Packet_Parameter1 == 1)
 	{
-		Timing_Mode = Packet_Parameter1;
+		Timing_Mode = Packet_Parameter1; //Set timing mode
 	}
 }
 
+/*! @brief Handles Raise Packets
+ *
+ *  @return bool - TRUE if successfully send, FALSE if packet_put fails
+ */
 bool HandleRaiseMode(void)
 {
 	if (Packet_Parameter1 == 0)
 	{
-		Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raises, 0, 0);
+		Packet_Put(CMD_NUMBER_OF_RAISES, Nb_Raises, 0, 0); //Retrieve Number of Raises
 	}
 	else if (Packet_Parameter1 == 1)
 	{
-		Nb_Raises = 0;
+		Nb_Raises = 0; //Set Raises to 0
 	}
 }
 
+/*! @brief Handles Raise Packets
+ *
+ *  @return bool - TRUE if successfully send, FALSE if packet_put fails
+ */
 bool HandleLowerMode(void)
 {
-  if (Packet_Parameter1 == 0) // Get number of raises
+  if (Packet_Parameter1 == 0)
   {
      Packet_Put(CMD_NUMBER_OF_LOWERS, Nb_Lowers, 0, 0);
   }
@@ -326,22 +336,6 @@ bool HandleLowerMode(void)
   }
 }
 
-/*bool HandleRMSValues(void)
-{
-    Packet_Parameter1 = 1;
-
-	uint16_t tempVRMS = (uint16_t) ((samples[0].vrmsValue / 3276.7) * 100);
-	uint16_t lowVRMS = tempVRMS%256;
-	uint16_t highVRMS = tempVRMS/256;
-	uint8_t highVRMS8 = (uint8_t) highVRMS;
-	uint8_t lowVRMS8 = (uint8_t) lowVRMS;
-	Packet_Put(CMD_VOLTAGE_RMS, Packet_Parameter1, lowVRMS8, highVRMS8);
-}*/
-
-/*! @brief Sends Protocol Packet from PC TO MCU and sets accelerometer mode
-*
-*  @return bool - TRUE if sending the protocol packets was successful.
-*/
 /*! @brief Handle Packet Sending from PC TO MCU
 *
 *  @return bool - TRUE if sending the startup packets was successful.
@@ -379,10 +373,10 @@ void HandlePackets(void)
 		success = HandlePacketFlashProgram();
 		break;
 
-		case CMD_ANALOG:
+		/*case CMD_ANALOG:
 		success = HandleAnalogPacket();
 		break;
-
+*/
         case CMD_TIMING_MODE:
 		success = HandleTimingMode();
 		break;
@@ -449,6 +443,9 @@ static bool MCUInit(void)
   // TODO: Initialize any modules that need to be initialized.
 }
 
+/*! @brief Initialises modules.
+ *
+ */
 static void InitModulesThread(void *pData)
 {
 	 MCUInit();
@@ -457,6 +454,7 @@ static void InitModulesThread(void *pData)
 	 volatile uint16union_t *NvModeNb; //Allocate space for flash in MCU Mode
 	 int8_t *Nb_Raise = &Nb_Raises; //Allocate space in flash for Raises
 	 int8_t *Nb_Lower = &Nb_Lowers; //Allocate space in flash for Lowers
+	 int8_t *Nb_Timing = &Timing_Mode; //Allocate space in flash storing time taken
 
 	 static bool success;
 
@@ -474,17 +472,22 @@ static void InitModulesThread(void *pData)
 	     Flash_Write16((volatile uint16_t*)NvModeNb, MCU_MODE);
 	 }
 
-	 if (Flash_AllocateVar((void*)&Nb_Raise, sizeof(*Nb_Raise)))
+	 if (Flash_AllocateVar((void*)&Nb_Raise, sizeof(*Nb_Raise))) //Allocate flash space to store number of times raises
 	 {
 	     Flash_Write8((int8_t*)Nb_Raise, 0);
 	 }
 
-	 if (Flash_AllocateVar((void*)&Nb_Lower, sizeof(*Nb_Lower)))
+	 if (Flash_AllocateVar((void*)&Nb_Lower, sizeof(*Nb_Lower))) //Allocate flash space to store number of times it was lowered
 	 {
 	     Flash_Write8((int8_t*)Nb_Lower, 0);
 	 }
 
-	 OS_ThreadDelete(OS_PRIORITY_SELF);
+	 if (Flash_AllocateVar((void*)&Nb_Timing, sizeof(*Nb_Timing)))
+	 {
+	    Flash_Write8((int8_t* )Nb_Timing, 1);
+	 }
+
+	 OS_ThreadDelete(OS_PRIORITY_SELF); //Thread can only execute once
 }
 
 /*! @brief Initialises the hardware, sets up threads, and starts the OS.
@@ -502,8 +505,9 @@ int main(void)
   error = OS_ThreadCreate(InitModulesThread, NULL, &InitModulesThreadStack[THREAD_STACK_SIZE-1], 0);
   error = OS_ThreadCreate(ReceiveThread, NULL, &ReceiveThreadStack[THREAD_STACK_SIZE-1], 1);
   error = OS_ThreadCreate(TransmitThread, NULL, &TransmitThreadStack[THREAD_STACK_SIZE-1], 2);
-  error = OS_ThreadCreate(PacketGetThread, NULL, &PacketGetModulesThreadStack[THREAD_STACK_SIZE-1], 4);
-  error = OS_ThreadCreate(PIT0CallbackThread, NULL, &PIT0CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
+  error = OS_ThreadCreate(PIT2CallbackThread, NULL, &PIT2CallbackThreadStack[THREAD_STACK_SIZE-1], 3);
+  error = OS_ThreadCreate(PIT3CallbackThread, NULL, &PIT3CallbackThreadStack[THREAD_STACK_SIZE-1], 4);
+  error = OS_ThreadCreate(PacketGetThread, NULL, &PacketGetModulesThreadStack[THREAD_STACK_SIZE-1], 5);
   // Start multithreading - never returns!
   OS_Start();
   // If the program returns from OS_Start, we have a major problem!

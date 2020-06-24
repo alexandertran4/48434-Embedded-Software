@@ -23,9 +23,53 @@ typedef struct
 }
 channelData_t;
 
+/*! @brief Alarm Signal, turn on Red LED
+ *
+ *
+ */
 void Alarm_Tap();
+/*! @brief Raise Signal, turn off all LED's
+ *
+ *
+ */
 void Raise_Tap();
+/*! @brief Lower Signal, turn on blue LED
+ *
+ *
+ */
 void Lower_Tap();
+/*! @brief Idle Signal, turn off all LED's
+ *
+ *
+ */
 void Idle_Signal();
-
+/*! @brief Calculates the RMS voltage value
+ *
+ *  @param Sample array of samples
+ */
+int16_t Calc_RMS(int16_t Sample[]);
+/*! @brief Sets the time period for definite mode
+ *
+ *  @param void
+ */
+void Definite_Mode(void);
+/*! @brief Sets the time period for inverse mode
+ *
+ *  @param void
+ */
+void Inverse_Mode(void);
+/*! @brief Check if the value of RMS voltage is in or out of bounds
+ *
+ *  @param voltRMS RMS Voltage value being processed
+ */
+void Voltage_Checker(int16_t voltRMS);
+/*! @brief Check of boundaries in definite timing mode
+ *  @return void
+ */
+void Definite_Boundary(void);
+/*! @brief Check of boundaries in inverse timing mode
+ *  @return void
+ */
+void Inverse_Boundary();
+void Frequency_Tracking(void);
 #endif /* VRR_H_ */
