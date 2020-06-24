@@ -14,8 +14,8 @@
 // new types
 #include "Types\types.h"
 #include "OS.h"
-extern OS_ECB *PIT0Semaphore;
 extern OS_ECB *PIT2Semaphore;
+extern OS_ECB *PIT3Semaphore;
 
 void PIT0CallbackThread(void *pData);
 

@@ -19,15 +19,41 @@
 #include "core_cm4.h"
 #include "OS.h"
 #include "LEDs\LEDs.h"
+#include "ADC\ADC.h"
+#include "VRR\VRR.h"
 static void (*Userfunction)(void*); /*!< User function to be called by the PIT ISR. */
 static void* Userarguments; /*!< Arguments to pass to the PIT user function. */
-OS_ECB *PIT0Semaphore;
+OS_ECB *PIT2Semaphore;
+OS_ECB *PIT3Semaphore;
 
-void PIT0CallbackThread(void *pData)
+static void PIT0CallbackThread(void *pData)
 {
 	for (;;)
 	{
-		OS_SemaphoreWait(PIT0Semaphore, 0);
+		OS_SemaphoreWait(PIT2Semaphore, 0);
+
+		if (Userfunction)
+		{
+			(*Userfunction)(Userarguments);
+		}
+
+		if (Timing_Mode == 1)
+		{
+
+		}
+
+		else if (Timing_Mode == 2)
+		{
+
+		}
+	}
+}
+
+static void PIT3CallbackThread(void *pData)
+{
+	for (;;)
+	{
+		OS_SemaphoreWait(PIT3Semaphore, 0);
 
 		if (Userfunction)
 		{
@@ -35,7 +61,6 @@ void PIT0CallbackThread(void *pData)
 		}
 	}
 }
-
 /*! @brief Sets up the PIT before first use.
  *
  *  Enables the PIT and freezes the timer when debugging.
@@ -72,7 +97,7 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
  *                 FALSE if the PIT will use the new value after a trigger event.
  *  @note The function will enable the timer and interrupts for the PIT.
  */
-void PIT_Set(const uint64_t period, const bool restart)
+void PIT_Set(const uint32_t period, const bool restart)
 {
 	//K64 module refers to these variables
 	static uint32_t PITmoduleClk;
@@ -106,7 +131,6 @@ void PIT_Enable(const bool enable)
 
 	}
 }
-
 
 /*! @brief Interrupt service routine for the PIT.
  *

@@ -346,7 +346,7 @@ bool HandleLowerMode(void)
 *
 *  @return bool - TRUE if sending the startup packets was successful.
 */
-void HandlePackets()
+void HandlePackets(void)
 {
 	uint8_t success = 0;
 
@@ -423,12 +423,10 @@ static bool MCUInit(void)
   BOARD_InitBootClocks();
 
   bool success;
-  const uint64_t TimerPeriod = 500000000;
 
   if (LEDs_Init() && Packet_Init(SystemCoreClock, &UART_SETUP) && Flash_Init() && FTM_Init() && PIT_Init(CLOCK_GetFreq(kCLOCK_BusClk), &PITCallback, NULL) && ADC_Init(CLOCK_GetFreq(kCLOCK_BusClk))) //Initialisation of packet
   {
 	 LEDs_On(LED_GREEN); //Call LED function to turn on Green LED
-	 PIT_Set(TimerPeriod, true); //Set PIT Timer period*/
   }
 
   success = FG_Init(SystemCoreClock, &FG_SETUP);
