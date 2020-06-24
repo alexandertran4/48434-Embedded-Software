@@ -122,11 +122,13 @@ void Definite_Boundary(void)
 
 void Inverse_Boundary()
 {
-	if (Samples[1].voltRMS > UPPER_RANGE)
+	newInverseVRMS = Samples[1].voltRMS;
+
+	if (newInverseVRMS > UPPER_RANGE)
 	{
 		if (percentageTaken < 100)
 		{
-			deviation = (Samples[1].voltRMS - NOMINAL_VOLT) / ANALOG_VALUE_PER_VOLT;
+			deviation = (newInverseVRMS- NOMINAL_VOLT) / ANALOG_VALUE_PER_VOLT;
 			timeGlobal = (5 / (2 * deviation)) * 1000;
 		}
 
@@ -149,11 +151,11 @@ void Inverse_Boundary()
 			percentageTaken = 0;
 	   }
 
-	  if (Samples[1].voltRMS < LOWER_RANGE)
+	  if (newInverseVRMS < LOWER_RANGE)
 	  {
-		if (percentageTaken < 100 && timeGlobal < 1000)
+		if (percentageTaken < 100)
 		{
-			deviation = (NOMINAL_VOLT - Samples[1].voltRMS) / ANALOG_VALUE_PER_VOLT;
+			deviation = (NOMINAL_VOLT - newInverseVRMS) / ANALOG_VALUE_PER_VOLT;
 			timeGlobal = (5 / (2 * deviation)) * 1000;
 		}
 
@@ -176,7 +178,7 @@ void Inverse_Boundary()
 			percentageTaken = 0;
 		 }
 
-	  if (Samples[1].voltRMS > LOWER_RANGE || Samples[1].voltRMS < UPPER_RANGE)
+	  if (newInverseVRMS > LOWER_RANGE || newInverseVRMS < UPPER_RANGE)
 	  {
 		  PIT_Enable(false); //Disable periodic interrupt timer
 		  Idle_Signal();
