@@ -25,7 +25,7 @@ const int16_t NB_OF_SAMPLES = 16;
 const int16_t UPPER_RANGE = 9830.3;
 const int16_t LOWER_RANGE = 6553.5;
 const int16_t NOMINAL_VOLT = 8191.9;
-const int16_t ANALOG_VALUE_PER_VOLT = 3276.7; //See assessment sheet for clarification of values
+const int16_t ANALOG_VALUE_PER_VOLT = 3276.7; //See assessment sheet for clarification of defined values
 int16_t newVRMS;
 float timeTaken; //time taken to change voltage
 float timeGlobal;
@@ -172,13 +172,13 @@ void Inverse_Boundary()
 	{
 		if (percentageTaken < 100)
 		{
-			deviation = (newVRMS - NOMINAL_VOLT) / ANALOG_VALUE_PER_VOLT;
-			timeGlobal = (5 / (2 * deviation)) * 1000;
+			deviation = (newVRMS - NOMINAL_VOLT) / ANALOG_VALUE_PER_VOLT; //Deviation from nominal voltage
+			timeGlobal = (5 / (2 * deviation)) * 1000; //Time converted to milliseconds
 		}
 
 		if (timeGlobal < 1000)
 		{
-			timeGlobal = 1000;
+			timeGlobal = 1000; //Delay from formula is less than 1 second, set it to 1 as per specification constraint
 		}
 			timeTaken = timeTaken + 10;
 			percentageTaken = (100 * timeTaken / timeGlobal);
@@ -189,6 +189,7 @@ void Inverse_Boundary()
 			Lower_Tap();
 			Nb_Lowers++;
 			//start timing
+			PIT_Enable3(true);
 			deviation = 0;
 			timeTaken = 0;
 			timeGlobal = 0;
@@ -215,6 +216,7 @@ void Inverse_Boundary()
 		{
 			Raise_Tap();
 			Nb_Raises++;
+			PIT_Enable3(true);
 			//start timing
 			deviation = 0;
 			timeTaken = 0;
@@ -224,7 +226,7 @@ void Inverse_Boundary()
 
 	  if (newVRMS > LOWER_RANGE || newVRMS < UPPER_RANGE)
 	  {
-		  PIT_Enable(false); //Disable periodic interrupt timer
+		  PIT_Enable3(false); //Disable periodic interrupt timer
 		  Idle_Signal();
 		  //Clear and Reset time variables
 		  deviation = 0;
